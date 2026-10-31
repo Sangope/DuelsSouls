@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" path="res://personaje.gd" id="1_pj"]
 [ext_resource type="PackedScene" path="res://personaje/character-male-a.glb" id="2_modelo"]
+[ext_resource type="Script" path="res://camara_sigue.gd" id="3_cam"]
 
 [sub_resource type="ProceduralSkyMaterial" id="CieloMat"]
 sky_top_color = Color(0.09, 0.06, 0.11, 1)
@@ -92,10 +93,12 @@ surface_material_override/0 = SubResource("PlatMat")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Plataformas/Plataforma3"]
 shape = SubResource("PlatForma")
 
-[node name="Camera3D" type="Camera3D" parent="."]
+[node name="Camera3D" type="Camera3D" parent="." node_paths=PackedStringArray("objetivo")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 12)
 projection = 1
-size = 10.0
+size = 8.0
+script = ExtResource("3_cam")
+objetivo = NodePath("../Personaje")
 
 [node name="Personaje" type="CharacterBody3D" parent="."]
 axis_lock_linear_z = true
