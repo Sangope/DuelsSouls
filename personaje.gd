@@ -1,5 +1,8 @@
 extends CharacterBody3D
 
+enum Estado { QUIETO, CAMINAR, AIRE, CURANDO }
+const RAPIDEZ_MAX = [0.0, 3.5, 3.5, 0.0] # rapidez máxima en m/s, en el orden del enum
+
 @export var speed = 3.5
 @export var tiempo_arranque = 0.2
 @export var gravedad = 28.0
@@ -11,6 +14,8 @@ var multiplicador = 1.0     # 1 = rapidez normal, 0.5 = la mitad, 0 = quieto
 var empuje = Vector3.ZERO   # velocidad extra en m/s (dash, retroceso)
 var accion = ""             # animación de la acción; "" = ninguna
 var avance = 0.0            # la parte de la velocidad que dan las teclas
+var estado = Estado.QUIETO
+var rapidez_max = 0.0
 
 
 func _physics_process(delta):
@@ -20,23 +25,49 @@ func _physics_process(delta):
 		velocity.y = sqrt(2 * gravedad * altura_salto)
 
 	var lado = Input.get_axis("move_left", "move_right")
+	var curando = is_on_floor() and Input.is_action_pressed("pocion")
+	var tope = 0.0 if curando else speed
 	var paso = speed / tiempo_arranque * delta
-	avance = move_toward(avance, lado * speed * multiplicador, paso)
+	avance = move_toward(avance, lado * tope * multiplicador, paso)
 	velocity.x = avance + empuje.x
 
-	if lado != 0:
+	if lado != 0 and not curando:
 		rotation.y = -PI / 2 * sign(lado)   # mira hacia +X o hacia -X
-	if accion != "":
-		anim.play(accion)
-	elif not is_on_floor():
-		anim.play("jump" if velocity.y > 0 else "fall")
-	elif absf(avance) > 0.1:
-		anim.play("walk")
-	else:
-		anim.play("idle")
 
 	move_and_slide()
+	var antes = estado
+	estado = elegir_estado()
+	rapidez_max = RAPIDEZ_MAX[estado]
+	if estado != antes:
+		print("estado ", Estado.keys()[estado], " · rapidez_max ", rapidez_max, " m/s")
+	animar()
 	_prueba()
+
+
+func elegir_estado():
+	if not is_on_floor():
+		return Estado.AIRE
+	if Input.is_action_pressed("pocion"):
+		return Estado.CURANDO
+	var rapidez = absf(velocity.x)
+	if rapidez < 0.1:
+		return Estado.QUIETO
+	return Estado.CAMINAR
+
+
+func animar():
+	if accion != "":
+		anim.play(accion)
+		return
+	match estado:
+		Estado.QUIETO:
+			anim.play("idle")
+		Estado.CAMINAR:
+			anim.play("walk")
+		Estado.AIRE:
+			anim.play("jump" if velocity.y > 0 else "fall")
+		Estado.CURANDO:
+			anim.play("pick-up")
 
 
 # ---------------------------------------------------------------------------
