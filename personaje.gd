@@ -1,6 +1,7 @@
 extends CharacterBody3D
 
 @export var speed = 3.5
+@export var tiempo_arranque = 0.2
 @export var gravedad = 28.0
 @export var altura_salto = 1.4
 @onready var anim = $Modelo/AnimationPlayer
@@ -9,6 +10,7 @@ extends CharacterBody3D
 var multiplicador = 1.0     # 1 = rapidez normal, 0.5 = la mitad, 0 = quieto
 var empuje = Vector3.ZERO   # velocidad extra en m/s (dash, retroceso)
 var accion = ""             # animación de la acción; "" = ninguna
+var avance = 0.0            # la parte de la velocidad que dan las teclas
 
 
 func _physics_process(delta):
@@ -18,7 +20,9 @@ func _physics_process(delta):
 		velocity.y = sqrt(2 * gravedad * altura_salto)
 
 	var lado = Input.get_axis("move_left", "move_right")
-	velocity.x = lado * speed * multiplicador + empuje.x
+	var paso = speed / tiempo_arranque * delta
+	avance = move_toward(avance, lado * speed * multiplicador, paso)
+	velocity.x = avance + empuje.x
 
 	if lado != 0:
 		rotation.y = -PI / 2 * sign(lado)   # mira hacia +X o hacia -X
@@ -26,7 +30,7 @@ func _physics_process(delta):
 		anim.play(accion)
 	elif not is_on_floor():
 		anim.play("jump" if velocity.y > 0 else "fall")
-	elif lado != 0:
+	elif absf(avance) > 0.1:
 		anim.play("walk")
 	else:
 		anim.play("idle")
