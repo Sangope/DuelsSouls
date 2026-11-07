@@ -7,6 +7,7 @@
 [ext_resource type="PackedScene" path="res://rival.tscn" id="4_rival"]
 [ext_resource type="Script" path="res://partida.gd" id="6_partida"]
 [ext_resource type="Script" path="res://pocion.gd" id="7_pocion"]
+[ext_resource type="Script" path="res://apuntar.gd" id="8_apuntar"]
 
 [sub_resource type="ProceduralSkyMaterial" id="CieloMat"]
 sky_top_color = Color(0.09, 0.06, 0.11, 1)
@@ -120,6 +121,9 @@ script = ExtResource("5_salud")
 
 [node name="Pocion" type="Node" parent="Personaje"]
 script = ExtResource("7_pocion")
+
+[node name="Apuntar" type="Node" parent="Personaje"]
+script = ExtResource("8_apuntar")
 
 [node name="Rival" parent="." instance=ExtResource("4_rival")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 0, 0)
