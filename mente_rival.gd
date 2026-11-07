@@ -5,6 +5,7 @@ enum Accion { ATACAR, CARGAR, DEFENDER, GOLPE_FUERTE, CURARSE }
 @export var ritmo = 0.8
 @export var danio = 10
 @export var cuantos_turnos = 8
+@export var patron: Array[int] = [0, 0, 2, 1]
 @export var vida = 100
 @export var vida_baja = 40
 @export var curas = 2
@@ -16,6 +17,7 @@ enum Accion { ATACAR, CARGAR, DEFENDER, GOLPE_FUERTE, CURARSE }
  
 var rng = RandomNumberGenerator.new()
 var veces = [0, 0, 0]
+var indice = 0
 var turno_numero = 0
 var reloj = 0.0
 var cargado = false
@@ -28,7 +30,7 @@ func _physics_process(delta):
 	if turno_numero >= cuantos_turnos:
 		return
 	reloj -= delta
-	if reloj <= 0:
+	if reloj <= 0.001:
 		reloj = ritmo
 		jugar_turno()
  
