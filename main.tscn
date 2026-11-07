@@ -9,6 +9,7 @@
 [ext_resource type="Script" path="res://pocion.gd" id="7_pocion"]
 [ext_resource type="Script" path="res://apuntar.gd" id="8_apuntar"]
 [ext_resource type="Script" path="res://mente_rival.gd" id="9_mente"]
+[ext_resource type="PackedScene" path="res://hud.tscn" id="10_hud"]
 
 [sub_resource type="ProceduralSkyMaterial" id="CieloMat"]
 sky_top_color = Color(0.09, 0.06, 0.11, 1)
@@ -134,3 +135,5 @@ script = ExtResource("6_partida")
 
 [node name="Mente" type="Node" parent="."]
 script = ExtResource("9_mente")
+
+[node name="HUD" parent="." instance=ExtResource("10_hud")]

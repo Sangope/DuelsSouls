@@ -1,5 +1,8 @@
 extends Node
 
+signal cambio(vida)
+signal sin_vida
+
 @export var vida = 100
 @export var invulnerable = 0.5
 var reloj = 0.0
@@ -10,11 +13,10 @@ func _physics_process(delta):
 
 
 func recibir_golpe(danio):
-	if reloj > 0.001:
-		print("invulnerable: no cuenta")
+	if reloj > 0.001 or vida == 0:
 		return
 	vida = maxi(vida - danio, 0)
 	reloj = invulnerable
-	print("vida del jugador: ", vida)
+	cambio.emit(vida)
 	if vida == 0:
-		print("el jugador perdió")
+		sin_vida.emit()
