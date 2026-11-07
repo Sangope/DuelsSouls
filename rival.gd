@@ -1,6 +1,6 @@
 extends CharacterBody3D
 
-enum Estado { ACERCARSE, AVISO, GOLPE, RECARGA }
+enum Estado { ACERCARSE, AVISO, GOLPE, RECARGA, HUIR }
 
 @export var rapidez = 2.0
 @export var rango_ataque = 1.4
@@ -8,6 +8,9 @@ enum Estado { ACERCARSE, AVISO, GOLPE, RECARGA }
 @export var tiempo_recarga = 0.8
 @export var alcance_golpe = 1.7
 @export var danio = 10
+@export var vida = 100.0
+@export var vida_huida = 20.0
+@export var danio_prueba = 40.0
 
 var estado = Estado.ACERCARSE
 var reloj = 0.0
@@ -35,11 +38,17 @@ func _physics_process(delta):
 			golpear()
 		Estado.RECARGA:
 			frenar("idle")
+		Estado.HUIR:
+			# Huir es perseguir con la flecha al revés.
+			var lejos = global_position - jugador.global_position
+			ir_a(global_position + lejos)
 	move_and_slide()
 
 
-# Desde cada estado solo se puede pasar a uno: el ciclo del ataque.
 func decidir():
+	# Va primero: le gana a cualquier estado, también al AVISO.
+	if vida <= vida_huida:
+		return Estado.HUIR
 	match estado:
 		Estado.ACERCARSE:
 			if distancia() <= rango_ataque:
@@ -74,6 +83,15 @@ func golpear():
 	var salud = jugador.get_node_or_null("Salud")
 	if salud != null:
 		salud.recibir_golpe(danio)
+
+
+# Se llama igual que en la diana del Taller 8: el rayo ya la sabe usar.
+func recibir_golpe(cuanto):
+	vida -= cuanto
+	print(name, " vida ", vida)
+	if vida <= 0:
+		print(name, " vencido")
+		queue_free()
 
 
 func ir_a(destino):
