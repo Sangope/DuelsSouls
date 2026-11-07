@@ -23,6 +23,10 @@ func _physics_process(delta):
 		print("le dio a ", golpe.collider.name, " a ", d, " m")
 		if golpe.collider.has_method("recibir_golpe"):
 			golpe.collider.recibir_golpe(danio)
+			if "vida" in golpe.collider and golpe.collider.vida <= 0:
+				var partida = get_tree().get_first_node_in_group("partida")
+				if partida != null:
+					partida.ganar()
 
 
 func lanzar_rayo():

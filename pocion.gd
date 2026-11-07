@@ -38,6 +38,9 @@ func empezar():
 	pj.empuje = Vector3.ZERO
 	pj.multiplicador = 0.0
 	pj.accion = "pick-up"
+	var salud = pj.get_node_or_null("Salud")
+	if salud != null and salud.has_method("curar"):
+		salud.curar(curacion)
 	print("empieza: ", tecla)
 	print("+", curacion, " de vida, quedan ", pociones)
 
