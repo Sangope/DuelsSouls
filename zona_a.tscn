@@ -4,6 +4,7 @@
 [ext_resource type="Script" path="res://ciclo_dia.gd" id="2_cdia"]
 [ext_resource type="PackedScene" path="res://personaje/character-male-a.glb" id="3_duelista"]
 [ext_resource type="PackedScene" path="res://personaje/character-male-d.glb" id="4_rival"]
+[ext_resource type="Script" path="res://fotometro.gd" id="5_foto"]
 
 [sub_resource type="Environment" id="EntornoArena"]
 background_mode = 1
@@ -119,3 +120,12 @@ transform = Transform3D(1, 0, 0, 0, 0.988, 0.154, 0, -0.154, 0.988, 0, 2.3, 12)
 current = true
 projection = 1
 size = 7.5
+
+[node name="Fotometro" type="Node" parent="." node_paths=PackedStringArray("sistema", "camara", "superficie")]
+process_mode = 4
+script = ExtResource("5_foto")
+sistema = NodePath("../SistemaSol")
+camara = NodePath("../CamaraZonaA")
+superficie = NodePath("../Suelo/PisoArena")
+punto = Vector3(-3.2, 0, 2.0)
+horas = Array[float]([7.0, 8.0, 9.0])
