@@ -1,0 +1,120 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://sistema_sol.gd" id="1_ssol"]
+[ext_resource type="Script" path="res://ciclo_dia.gd" id="2_cdia"]
+[ext_resource type="PackedScene" path="res://personaje/character-male-a.glb" id="3_duelista"]
+[ext_resource type="PackedScene" path="res://personaje/character-male-d.glb" id="4_rival"]
+
+[sub_resource type="Environment" id="EntornoArena"]
+background_mode = 1
+background_color = Color(0.05, 0.04, 0.055, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.18, 0.16, 0.19, 1)
+ambient_light_energy = 0.06
+tonemap_mode = 2
+
+[sub_resource type="BoxMesh" id="PisoMalla"]
+size = Vector3(24, 1, 6)
+
+[sub_resource type="StandardMaterial3D" id="PisoMat"]
+albedo_color = Color(0.24, 0.21, 0.24, 1)
+roughness = 0.9
+
+[sub_resource type="BoxShape3D" id="PisoForma"]
+size = Vector3(24, 1, 6)
+
+[sub_resource type="BoxMesh" id="PilarMalla"]
+size = Vector3(1.2, 5.5, 1.2)
+
+[sub_resource type="StandardMaterial3D" id="PiedraMat"]
+albedo_color = Color(0.18, 0.16, 0.19, 1)
+roughness = 0.95
+
+[sub_resource type="BoxMesh" id="PlatArenaMalla"]
+size = Vector3(3.0, 0.6, 3.5)
+
+[sub_resource type="StandardMaterial3D" id="RojoPiedraMat"]
+albedo_color = Color(0.35, 0.11, 0.13, 1)
+roughness = 0.85
+
+[node name="ZonaA" type="Node3D"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("EntornoArena")
+
+[node name="Sol" type="DirectionalLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.965926, 0.258819, 0, -0.258819, 0.965926, 0, 6, 0)
+shadow_enabled = true
+shadow_bias = 0.05
+
+[node name="SistemaSol" type="Node" parent="." node_paths=PackedStringArray("sol", "entorno")]
+script = ExtResource("1_ssol")
+sol = NodePath("../Sol")
+entorno = NodePath("../WorldEnvironment")
+
+[node name="CicloDia" type="Node" parent="SistemaSol"]
+script = ExtResource("2_cdia")
+
+[node name="Suelo" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+
+[node name="PisoArena" type="MeshInstance3D" parent="Suelo"]
+mesh = SubResource("PisoMalla")
+surface_material_override/0 = SubResource("PisoMat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Suelo"]
+shape = SubResource("PisoForma")
+
+[node name="ColumnasFondo" type="Node3D" parent="."]
+
+[node name="PilarIzq" type="MeshInstance3D" parent="ColumnasFondo"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.5, 2.25, -2.2)
+mesh = SubResource("PilarMalla")
+surface_material_override/0 = SubResource("PiedraMat")
+
+[node name="PilarCen" type="MeshInstance3D" parent="ColumnasFondo"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.25, -2.5)
+mesh = SubResource("PilarMalla")
+surface_material_override/0 = SubResource("PiedraMat")
+
+[node name="PilarDer" type="MeshInstance3D" parent="ColumnasFondo"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.5, 2.25, -2.2)
+mesh = SubResource("PilarMalla")
+surface_material_override/0 = SubResource("PiedraMat")
+
+[node name="TarimaIzq" type="MeshInstance3D" parent="ColumnasFondo"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.2, 0.3, 0)
+mesh = SubResource("PlatArenaMalla")
+surface_material_override/0 = SubResource("RojoPiedraMat")
+
+[node name="TarimaDer" type="MeshInstance3D" parent="ColumnasFondo"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.2, 0.3, 0)
+mesh = SubResource("PlatArenaMalla")
+surface_material_override/0 = SubResource("RojoPiedraMat")
+
+[node name="Duelista" parent="." instance=ExtResource("3_duelista")]
+transform = Transform3D(0, 0, 2.6, 0, 2.6, 0, -2.6, 0, 0, -1.3, 0, 0)
+
+[node name="RivalArena" parent="." instance=ExtResource("4_rival")]
+transform = Transform3D(0, 0, -2.6, 0, 2.6, 0, 2.6, 0, 0, 1.3, 0, 0)
+
+[node name="BraseroNoche" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.8, -1.5)
+visible = false
+light_color = Color(0.85, 0.64, 0.25, 1)
+light_energy = 0.0
+omni_range = 5.0
+omni_attenuation = 2.0
+
+[node name="DestelloParry" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.3, 0.4)
+light_color = Color(1, 1, 1, 1)
+light_energy = 0.0
+omni_range = 4.5
+omni_attenuation = 2.0
+
+[node name="CamaraZonaA" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.988, 0.154, 0, -0.154, 0.988, 0, 2.3, 12)
+current = true
+projection = 1
+size = 7.5
