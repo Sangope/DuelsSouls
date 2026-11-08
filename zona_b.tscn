@@ -116,6 +116,13 @@ amplitud = 0.3
 velocidad = 4.0
 semilla = 7
 
+[node name="LuzFervor" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.6, -1.4)
+light_color = Color(0.35, 0.12, 0.14, 1)
+light_energy = 1.0
+omni_range = 5.0
+omni_attenuation = 2.0
+
 [node name="Disparador" type="Area3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.3, 0.5, 0)
 collision_mask = 8
@@ -132,11 +139,15 @@ light_energy = 0.0
 omni_range = 4.0
 omni_attenuation = 2.0
 
-[node name="SistemaEventos" type="Node" parent="." node_paths=PackedStringArray("luz_evento")]
+[node name="SistemaEventos" type="Node" parent="." node_paths=PackedStringArray("luz_evento", "luz_variable")]
 script = ExtResource("5_seve")
 luz_evento = NodePath("../LuzEvento")
 pico_destello = 5.0
 k_destello = 3.0
+luz_variable = NodePath("../LuzFervor")
+color_bajo = Color(0.35, 0.12, 0.14, 1)
+color_alto = Color(0.95, 0.76, 0.32, 1)
+k_variable = 4.0
 
 [node name="CamaraZonaB" type="Camera3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 0.988, 0.154, 0, -0.154, 0.988, 0, 2.3, 12)
