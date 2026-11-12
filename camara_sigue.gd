@@ -2,7 +2,7 @@ extends Camera3D
 
 @export var objetivo: Node3D # Jugador 1
 @export var objetivo2: Node3D # Jugador 2
-@export var distancia = Vector3(0, 2.2, 12)
+@export var distancia = Vector3(0, 1.85, 12)
 @export var suavizado = 5.0
 @export var limite_min = Vector2(-5.5, -10) # x y z mínimas (evita enfocar fuera de las paredes)
 @export var limite_max = Vector2(5.5, 10) # x y z máximas
@@ -12,7 +12,9 @@ func _ready():
 	top_level = true
 	_buscar_objetivos()
 	var foco = calcular_foco()
-	look_at_from_position(foco + distancia, foco)
+	foco.x = clampf(foco.x, limite_min.x, limite_max.x)
+	global_position = Vector3(foco.x, distancia.y, distancia.z)
+	rotation = Vector3.ZERO
 
 
 func _buscar_objetivos():
@@ -58,7 +60,7 @@ func _physics_process(delta):
 
 	var foco = calcular_foco()
 	foco.x = clampf(foco.x, limite_min.x, limite_max.x)
-	foco.z = clampf(foco.z, limite_min.y, limite_max.y)
 
-	var destino = foco + distancia
+	var destino = Vector3(foco.x, distancia.y, distancia.z)
 	global_position = global_position.lerp(destino, suavizado * delta)
+	rotation = Vector3.ZERO
