@@ -22,13 +22,21 @@ size = Vector2(40, 9)
 [sub_resource type="StandardMaterial3D" id="MatFondo"]
 transparency = 0
 shading_mode = 1
-albedo_color = Color(0.98, 0.94, 0.94, 1)
+albedo_color = Color(1, 0.96, 0.96, 1)
 albedo_texture = ExtResource("4_fondo")
 texture_filter = 0
 
 [sub_resource type="QuadMesh" id="MeshFondo"]
 material = SubResource("MatFondo")
-size = Vector2(21.37, 12.0)
+size = Vector2(25.0, 14.0)
+
+[sub_resource type="StandardMaterial3D" id="MatBorde"]
+albedo_color = Color(0.24, 0.2, 0.22, 1)
+roughness = 0.9
+
+[sub_resource type="BoxMesh" id="MeshBorde"]
+material = SubResource("MatBorde")
+size = Vector3(40, 0.2, 0.3)
 
 [sub_resource type="StandardMaterial3D" id="MatPolvo"]
 transparency = 1
@@ -40,19 +48,33 @@ albedo_color = Color(1, 0.9, 0.8, 0.35)
 material = SubResource("MatPolvo")
 size = Vector2(0.04, 0.04)
 
+[sub_resource type="StandardMaterial3D" id="MatBruma"]
+transparency = 1
+shading_mode = 0
+vertex_color_use_as_albedo = true
+albedo_color = Color(0.65, 0.6, 0.65, 0.1)
+
+[sub_resource type="QuadMesh" id="MeshBruma"]
+material = SubResource("MatBruma")
+size = Vector2(0.6, 0.3)
+
 [node name="EscenarioRuinas" type="Node3D"]
 
 [node name="Piso3D" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.9)
 mesh = SubResource("MeshPiso")
 
+[node name="BordeTerraza" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, -3.6)
+mesh = SubResource("MeshBorde")
+
 [node name="FondoRuinas" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.8, -3.8)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5.8, -8.5)
 mesh = SubResource("MeshFondo")
 
 [node name="PolvoAmbiente" type="CPUParticles3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.5, 0)
-amount = 40
+amount = 45
 lifetime = 4.5
 mesh = SubResource("MeshPolvo")
 emission_shape = 3
@@ -63,3 +85,17 @@ gravity = Vector3(-0.02, -0.05, 0.01)
 initial_velocity_min = 0.1
 initial_velocity_max = 0.3
 color = Color(0.95, 0.85, 0.75, 0.35)
+
+[node name="BrumaSuelo" type="CPUParticles3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.15, 0)
+amount = 25
+lifetime = 3.5
+mesh = SubResource("MeshBruma")
+emission_shape = 3
+emission_box_extents = Vector3(10, 0.1, 2.0)
+direction = Vector3(0.2, 0, 0)
+spread = 15.0
+gravity = Vector3(0.01, 0, 0)
+initial_velocity_min = 0.05
+initial_velocity_max = 0.15
+color = Color(0.7, 0.65, 0.7, 0.12)
