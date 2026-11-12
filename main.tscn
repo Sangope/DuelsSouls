@@ -11,7 +11,6 @@
 [ext_resource type="Script" path="res://mente_rival.gd" id="9_mente"]
 [ext_resource type="PackedScene" path="res://hud.tscn" id="10_hud"]
 [ext_resource type="PackedScene" path="res://escenario/escenario_ruinas.glb" id="11_ruinas"]
-[ext_resource type="Shader" path="res://escenario/pixel_art.gdshader" id="12_pixel"]
 
 [sub_resource type="ProceduralSkyMaterial" id="CieloMat"]
 sky_top_color = Color(0.18, 0.14, 0.24, 1)
@@ -38,12 +37,6 @@ size = Vector3(1, 14, 8)
 [sub_resource type="CapsuleShape3D" id="Capsula"]
 radius = 0.35
 height = 1.75
-
-[sub_resource type="ShaderMaterial" id="PixelMat"]
-shader = ExtResource("12_pixel")
-shader_parameter/tamano_pixel = 3.0
-shader_parameter/niveles_color = 32
-shader_parameter/contraste = 1.08
 
 [node name="Main" type="Node3D"]
 
@@ -146,17 +139,5 @@ script = ExtResource("6_partida")
 
 [node name="Mente" type="Node" parent="."]
 script = ExtResource("9_mente")
-
-[node name="EfectoPixelArt" type="CanvasLayer" parent="."]
-layer = 1
-
-[node name="ColorRect" type="ColorRect" parent="EfectoPixelArt"]
-material = SubResource("PixelMat")
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
 
 [node name="HUD" parent="." instance=ExtResource("10_hud")]
