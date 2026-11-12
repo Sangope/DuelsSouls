@@ -3,8 +3,8 @@
 [ext_resource type="Script" path="res://personaje.gd" id="1_pj"]
 [ext_resource type="PackedScene" path="res://personaje/character-male-a.glb" id="2_modelo"]
 [ext_resource type="Script" path="res://camara_sigue.gd" id="3_cam"]
+[ext_resource type="PackedScene" path="res://personaje/character-male-d.glb" id="4_modelo_rival"]
 [ext_resource type="Script" path="res://salud.gd" id="5_salud"]
-[ext_resource type="PackedScene" path="res://rival.tscn" id="4_rival"]
 [ext_resource type="Script" path="res://partida.gd" id="6_partida"]
 [ext_resource type="Script" path="res://pocion.gd" id="7_pocion"]
 [ext_resource type="Script" path="res://apuntar.gd" id="8_apuntar"]
@@ -35,14 +35,15 @@ albedo_color = Color(0.24, 0.21, 0.23, 1)
 [sub_resource type="BoxShape3D" id="PisoForma"]
 size = Vector3(30, 1, 4)
 
-[sub_resource type="BoxMesh" id="PlatMalla"]
-size = Vector3(3, 0.4, 4)
+[sub_resource type="BoxMesh" id="ParedMalla"]
+size = Vector3(1, 8, 4)
 
-[sub_resource type="BoxShape3D" id="PlatForma"]
-size = Vector3(3, 0.4, 4)
+[sub_resource type="StandardMaterial3D" id="ParedMat"]
+albedo_color = Color(0.18, 0.16, 0.19, 1)
+roughness = 0.9
 
-[sub_resource type="StandardMaterial3D" id="PlatMat"]
-albedo_color = Color(0.52, 0.21, 0.19, 1)
+[sub_resource type="BoxShape3D" id="ParedForma"]
+size = Vector3(1, 8, 4)
 
 [sub_resource type="CapsuleShape3D" id="Capsula"]
 radius = 0.35
@@ -68,48 +69,44 @@ surface_material_override/0 = SubResource("SueloMat")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Suelo"]
 shape = SubResource("PisoForma")
 
-[node name="Plataformas" type="Node3D" parent="."]
+[node name="Paredes" type="Node3D" parent="."]
 
-[node name="Plataforma1" type="StaticBody3D" parent="Plataformas"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.5, 0.4, 0)
+[node name="ParedIzquierda" type="StaticBody3D" parent="Paredes"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14.5, 3.5, 0)
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Plataformas/Plataforma1"]
-mesh = SubResource("PlatMalla")
-surface_material_override/0 = SubResource("PlatMat")
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Paredes/ParedIzquierda"]
+mesh = SubResource("ParedMalla")
+surface_material_override/0 = SubResource("ParedMat")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Plataformas/Plataforma1"]
-shape = SubResource("PlatForma")
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Paredes/ParedIzquierda"]
+shape = SubResource("ParedForma")
 
-[node name="Plataforma2" type="StaticBody3D" parent="Plataformas"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.5, 0.4, 0)
+[node name="ParedDerecha" type="StaticBody3D" parent="Paredes"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14.5, 3.5, 0)
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Plataformas/Plataforma2"]
-mesh = SubResource("PlatMalla")
-surface_material_override/0 = SubResource("PlatMat")
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Paredes/ParedDerecha"]
+mesh = SubResource("ParedMalla")
+surface_material_override/0 = SubResource("ParedMat")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Plataformas/Plataforma2"]
-shape = SubResource("PlatForma")
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Paredes/ParedDerecha"]
+shape = SubResource("ParedForma")
 
-[node name="Plataforma3" type="StaticBody3D" parent="Plataformas"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.5, 2.9, 0)
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Plataformas/Plataforma3"]
-mesh = SubResource("PlatMalla")
-surface_material_override/0 = SubResource("PlatMat")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Plataformas/Plataforma3"]
-shape = SubResource("PlatForma")
-
-[node name="Camera3D" type="Camera3D" parent="." node_paths=PackedStringArray("objetivo")]
+[node name="Camera3D" type="Camera3D" parent="." node_paths=PackedStringArray("objetivo", "objetivo2")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 12)
 projection = 1
 size = 8.0
 script = ExtResource("3_cam")
 objetivo = NodePath("../Personaje")
+objetivo2 = NodePath("../Rival")
+limite_min = Vector2(-5.5, -10)
+limite_max = Vector2(5.5, 10)
 
-[node name="Personaje" type="CharacterBody3D" parent="." groups=["jugador"]]
+[node name="Personaje" type="CharacterBody3D" parent="." node_paths=PackedStringArray("rival") groups=["jugador", "luchador"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0, 0)
 axis_lock_linear_z = true
 script = ExtResource("1_pj")
+jugador_id = 1
+rival = NodePath("../Rival")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Personaje"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.875, 0)
@@ -127,8 +124,26 @@ script = ExtResource("7_pocion")
 [node name="Apuntar" type="Node" parent="Personaje"]
 script = ExtResource("8_apuntar")
 
-[node name="Rival" parent="." instance=ExtResource("4_rival")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 0, 0)
+[node name="Rival" type="CharacterBody3D" parent="." node_paths=PackedStringArray("rival") groups=["luchador", "rival"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0, 0)
+axis_lock_linear_z = true
+script = ExtResource("1_pj")
+jugador_id = 2
+rival = NodePath("../Personaje")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Rival"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.875, 0)
+shape = SubResource("Capsula")
+
+[node name="Modelo" parent="Rival" instance=ExtResource("4_modelo_rival")]
+transform = Transform3D(-2.6, 0, 0, 0, 2.6, 0, 0, 0, -2.6, 0, 0, 0)
+
+[node name="Salud" type="Node" parent="Rival"]
+script = ExtResource("5_salud")
+
+[node name="Pocion" type="Node" parent="Rival"]
+script = ExtResource("7_pocion")
+tecla = "p2_pocion"
 
 [node name="Partida" type="Node" parent="."]
 script = ExtResource("6_partida")

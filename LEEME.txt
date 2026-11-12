@@ -1,4 +1,35 @@
-Inicio del juego 2.5D — plantilla para el juego del equipo (Corte 2).
-Mundo 3D visto de lado con cámara ortográfica: el personaje (Kenney, CC0) solo se mueve
-en X y salta en Y (el eje Z está bloqueado). Trae los enchufes multiplicador, empuje y accion
-y la prueba automática del Inspector. Escena: main.tscn.
+========================================
+DUELS SOULS - Juego de Combate 2.5D
+========================================
+
+Proyecto de pelea 1v1 en arena plana con vista 2.5D y cámara ortográfica.
+Desarrollado en Godot Engine 4.
+
+CONTROLES:
+----------------------------------------
+[Jugador 1] (Luchador Izquierdo):
+- A / D: Moverse a la izquierda / derecha (hacia el frente a 3.5 m/s o hacia atrás a 2.4 m/s sin darle la espalda al rival)
+- W / Barra Espaciadora: Saltar
+- C: Usar Poción
+- J / Z: Ataque
+
+[Jugador 2] (Luchador Derecho / Rival):
+- Flechas Izquierda / Derecha: Moverse a la izquierda / derecha (hacia el frente a 3.5 m/s o hacia atrás a 2.4 m/s sin darle la espalda al rival)
+- Flecha Arriba: Saltar
+- P / Teclado Numérico 1: Usar Poción
+- O / Teclado Numérico 2: Ataque
+
+CARACTERÍSTICAS IMPLEMENTADAS (Puntos 1 y 2 del Cronograma):
+----------------------------------------
+1. Base limpia y unificada:
+   - Integración completa de todos los módulos de los talleres (rival.gd, mente_rival.gd, salud.gd, partida.gd, hud.tscn, sistemas de luces).
+   - Opciones de pruebas automáticas configuradas en "Ninguna" por defecto.
+   - Escenario de main.tscn limpio y plano para la arena 1v1 (eliminadas plataformas flotantes).
+
+2. Arena, límites y movimiento 1v1:
+   - Suelo plano en el plano Z = 0 con dos paredes sólidas (StaticBody3D + CollisionShape3D) a izquierda y derecha.
+   - Límite de posición en X por código (clamp) de seguridad que evita caídas o salidas del mapa.
+   - Colisión entre ambos personajes para que no se atraviesen ni se arrastran al empujarse.
+   - Cámara de seguimiento ortográfica que calcula en tiempo real el punto medio entre ambos luchadores y respeta los límites del mapa para no enfocar fuera de las paredes.
+   - Orientación dinámica: ambos personajes se mantienen siempre mirándose de frente en el plano Z = 0, sin importar la tecla presionada.
+   - Velocidad de avance al frente a 3.5 m/s y retroceso a 2.4 m/s manteniendo siempre la mirada hacia el contrincante.

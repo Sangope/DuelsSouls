@@ -1,22 +1,64 @@
 extends Camera3D
 
-@export var objetivo: Node3D
+@export var objetivo: Node3D # Jugador 1
+@export var objetivo2: Node3D # Jugador 2
 @export var distancia = Vector3(0, 2.2, 12)
 @export var suavizado = 5.0
-@export var limite_min = Vector2(-2, -10) # x y z mínimas
-@export var limite_max = Vector2(2, 10) # x y z máximas
+@export var limite_min = Vector2(-5.5, -10) # x y z mínimas (evita enfocar fuera de las paredes)
+@export var limite_max = Vector2(5.5, 10) # x y z máximas
 
 
 func _ready():
 	top_level = true
-	# Se orienta UNA vez, mirando al objetivo.
-	look_at_from_position(objetivo.global_position + distancia,
-		objetivo.global_position)
+	_buscar_objetivos()
+	var foco = calcular_foco()
+	look_at_from_position(foco + distancia, foco)
+
+
+func _buscar_objetivos():
+	if objetivo == null or not is_instance_valid(objetivo):
+		var jugadores = get_tree().get_nodes_in_group("jugador")
+		if jugadores.size() > 0:
+			objetivo = jugadores[0]
+		else:
+			objetivo = get_parent().get_node_or_null("Personaje")
+	if objetivo2 == null or not is_instance_valid(objetivo2):
+		var rivales = get_tree().get_nodes_in_group("rival")
+		if rivales.size() > 0:
+			objetivo2 = rivales[0]
+		else:
+			var luchadores = get_tree().get_nodes_in_group("luchador")
+			for l in luchadores:
+				if l != objetivo:
+					objetivo2 = l
+					break
+		if objetivo2 == null:
+			objetivo2 = get_parent().get_node_or_null("Rival")
+
+
+func calcular_foco() -> Vector3:
+	var v1_valido = objetivo != null and is_instance_valid(objetivo)
+	var v2_valido = objetivo2 != null and is_instance_valid(objetivo2)
+
+	if v1_valido and v2_valido:
+		# Mitad exacta entre los dos luchadores
+		var p1 = objetivo.global_position
+		var p2 = objetivo2.global_position
+		return (p1 + p2) * 0.5
+	elif v1_valido:
+		return objetivo.global_position
+	elif v2_valido:
+		return objetivo2.global_position
+	return global_position - distancia
 
 
 func _physics_process(delta):
-	var foco = objetivo.global_position
-	foco.x = clamp(foco.x, limite_min.x, limite_max.x)
-	foco.z = clamp(foco.z, limite_min.y, limite_max.y)
+	if objetivo == null or objetivo2 == null or not is_instance_valid(objetivo) or not is_instance_valid(objetivo2):
+		_buscar_objetivos()
+
+	var foco = calcular_foco()
+	foco.x = clampf(foco.x, limite_min.x, limite_max.x)
+	foco.z = clampf(foco.z, limite_min.y, limite_max.y)
+
 	var destino = foco + distancia
 	global_position = global_position.lerp(destino, suavizado * delta)
