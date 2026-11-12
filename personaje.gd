@@ -42,7 +42,15 @@ var vida: int:
 func _ready():
 	_configurar_controles()
 	_buscar_rival()
+	_configurar_animaciones()
 	global_position.z = 0.0
+
+
+func _configurar_animaciones():
+	if anim != null:
+		for n in ["idle", "walk"]:
+			if anim.has_animation(n):
+				anim.get_animation(n).loop_mode = Animation.LOOP_LINEAR
 
 
 func _configurar_controles():
@@ -138,6 +146,7 @@ func elegir_estado():
 
 func animar():
 	if accion != "":
+		anim.speed_scale = 1.0
 		if anim.has_animation(accion):
 			anim.play(accion)
 		elif anim.has_animation("attack"):
@@ -145,23 +154,37 @@ func animar():
 		return
 	match estado:
 		Estado.QUIETO:
+			anim.speed_scale = 1.0
 			if anim.has_animation("idle"):
-				anim.play("idle")
+				if anim.current_animation != "idle":
+					anim.play("idle")
 		Estado.CAMINAR:
 			var hacia_rival_x = 1.0
 			if rival != null and is_instance_valid(rival):
 				hacia_rival_x = 1.0 if rival.global_position.x >= global_position.x else -1.0
 			var retrocediendo = (sign(velocity.x) != 0 and sign(velocity.x) != hacia_rival_x)
-			if retrocediendo:
-				anim.play("walk", -1, -0.8)
-			else:
-				anim.play("walk", -1, 1.0)
+			if anim.has_animation("walk"):
+				if retrocediendo:
+					# Caminar hacia atrás en reversa manteniendo la mirada al rival
+					if anim.current_animation != "walk":
+						anim.play_backwards("walk")
+						anim.speed_scale = -0.85
+					elif anim.speed_scale > 0:
+						anim.speed_scale = -0.85
+				else:
+					# Caminar hacia adelante normalmente
+					if anim.current_animation != "walk":
+						anim.play("walk", -1, 1.0)
+					elif anim.speed_scale < 0:
+						anim.speed_scale = 1.0
 		Estado.AIRE:
+			anim.speed_scale = 1.0
 			if anim.has_animation("fall") and velocity.y <= 0:
 				anim.play("fall")
 			elif anim.has_animation("jump"):
 				anim.play("jump")
 		Estado.CURANDO:
+			anim.speed_scale = 1.0
 			if anim.has_animation("pick-up"):
 				anim.play("pick-up")
 
