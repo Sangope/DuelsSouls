@@ -1,7 +1,7 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://personaje.gd" id="1_pj"]
-[ext_resource type="PackedScene" path="res://personaje/xbot_combatiente.glb" id="2_modelo"]
+[ext_resource type="PackedScene" path="res://personaje/paladin_jugador1.glb" id="2_modelo"]
 [ext_resource type="Script" path="res://camara_sigue.gd" id="3_cam"]
 [ext_resource type="PackedScene" path="res://personaje/character-male-d.glb" id="4_modelo_rival"]
 [ext_resource type="Script" path="res://salud.gd" id="5_salud"]

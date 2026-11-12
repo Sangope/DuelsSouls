@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://pm3fyr62cltj"
-path="res://.godot/imported/xbot_combatiente.glb-52336675634c4938635fe4510276c48b.scn"
+uid="uid://d282freiswtj5"
+path="res://.godot/imported/paladin_jugador1.glb-e758aa07f12bc35825b93c7667cca34d.scn"
 
 [deps]
 
-source_file="res://personaje/xbot_combatiente.glb"
-dest_files=["res://.godot/imported/xbot_combatiente.glb-52336675634c4938635fe4510276c48b.scn"]
+source_file="res://personaje/paladin_jugador1.glb"
+dest_files=["res://.godot/imported/paladin_jugador1.glb-e758aa07f12bc35825b93c7667cca34d.scn"]
 
 [params]
 
