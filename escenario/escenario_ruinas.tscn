@@ -3,7 +3,7 @@
 [ext_resource type="Texture2D" path="res://escenario/piso_albedo.png" id="1_piso_alb"]
 [ext_resource type="Texture2D" path="res://escenario/piso_normal.png" id="2_piso_nrm"]
 [ext_resource type="Texture2D" path="res://escenario/piso_roughness.png" id="3_piso_rgh"]
-[ext_resource type="Texture2D" path="res://escenario/fondo_ruinas_panoramico.png" id="4_fondo"]
+[ext_resource type="Texture2D" path="res://escenario/fondo_ruinas_catedral.png" id="4_fondo"]
 
 [sub_resource type="StandardMaterial3D" id="MatPiso"]
 albedo_color = Color(0.92, 0.88, 0.88, 1)
@@ -28,27 +28,13 @@ texture_filter = 0
 
 [sub_resource type="QuadMesh" id="MeshFondo"]
 material = SubResource("MatFondo")
-size = Vector2(24.5, 9.0)
-
-[sub_resource type="StandardMaterial3D" id="MatParticula"]
-transparency = 1
-shading_mode = 0
-vertex_color_use_as_albedo = true
-albedo_color = Color(0.3, 1, 0.85, 0.9)
-
-[sub_resource type="QuadMesh" id="MeshParticula"]
-material = SubResource("MatParticula")
-size = Vector2(0.06, 0.06)
-
-[sub_resource type="Curve" id="CurvaParticula"]
-_data = [Vector2(0, 0.2), 0.0, 3.0, 0, 0, Vector2(0.4, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), -2.0, 0.0, 0, 0]
-point_count = 3
+size = Vector2(21.37, 12.0)
 
 [sub_resource type="StandardMaterial3D" id="MatPolvo"]
 transparency = 1
 shading_mode = 0
 vertex_color_use_as_albedo = true
-albedo_color = Color(1, 0.9, 0.8, 0.3)
+albedo_color = Color(1, 0.9, 0.8, 0.35)
 
 [sub_resource type="QuadMesh" id="MeshPolvo"]
 material = SubResource("MatPolvo")
@@ -61,29 +47,12 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.9)
 mesh = SubResource("MeshPiso")
 
 [node name="FondoRuinas" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.5, 3.6, -3.6)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.8, -3.8)
 mesh = SubResource("MeshFondo")
-
-[node name="AscuasFuegoMistico" type="CPUParticles3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.85, 4.8, -1.5)
-amount = 28
-lifetime = 1.6
-randomness = 0.5
-lifetime_randomness = 0.3
-mesh = SubResource("MeshParticula")
-emission_shape = 1
-emission_sphere_radius = 0.18
-direction = Vector3(0.2, 1, 0)
-spread = 25.0
-gravity = Vector3(0.1, 0.8, 0.05)
-initial_velocity_min = 0.4
-initial_velocity_max = 0.9
-scale_amount_curve = SubResource("CurvaParticula")
-color = Color(0.25, 0.98, 0.85, 0.85)
 
 [node name="PolvoAmbiente" type="CPUParticles3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.5, 0)
-amount = 35
+amount = 40
 lifetime = 4.5
 mesh = SubResource("MeshPolvo")
 emission_shape = 3
