@@ -10,13 +10,13 @@
 [ext_resource type="Script" path="res://apuntar.gd" id="8_apuntar"]
 [ext_resource type="Script" path="res://mente_rival.gd" id="9_mente"]
 [ext_resource type="PackedScene" path="res://hud.tscn" id="10_hud"]
-[ext_resource type="PackedScene" path="res://escenario/escenario_ruinas.glb" id="11_ruinas"]
+[ext_resource type="PackedScene" path="res://escenario/escenario_ruinas.tscn" id="11_ruinas"]
 
 [sub_resource type="ProceduralSkyMaterial" id="CieloMat"]
-sky_top_color = Color(0.18, 0.14, 0.24, 1)
-sky_horizon_color = Color(0.72, 0.46, 0.48, 1)
+sky_top_color = Color(0.14, 0.11, 0.2, 1)
+sky_horizon_color = Color(0.72, 0.44, 0.46, 1)
 ground_bottom_color = Color(0.1, 0.08, 0.12, 1)
-ground_horizon_color = Color(0.48, 0.32, 0.35, 1)
+ground_horizon_color = Color(0.48, 0.3, 0.32, 1)
 
 [sub_resource type="Sky" id="Cielo"]
 sky_material = SubResource("CieloMat")
@@ -25,8 +25,12 @@ sky_material = SubResource("CieloMat")
 background_mode = 2
 sky = SubResource("Cielo")
 ambient_light_source = 3
-ambient_light_color = Color(0.42, 0.34, 0.38, 1)
-ambient_light_energy = 1.1
+ambient_light_color = Color(0.4, 0.32, 0.36, 1)
+ambient_light_energy = 1.15
+fog_enabled = true
+fog_light_color = Color(0.48, 0.32, 0.36, 1)
+fog_density = 0.012
+fog_sky_affect = 0.4
 
 [sub_resource type="BoxShape3D" id="PisoForma"]
 size = Vector3(36, 10, 8)
@@ -45,16 +49,23 @@ environment = SubResource("Entorno")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 transform = Transform3D(0.92388, -0.191342, 0.331414, 0, 0.866025, 0.5, -0.382683, -0.46194, 0.800103, 0, 8, 4)
-light_color = Color(1, 0.9, 0.82, 1)
+light_color = Color(1, 0.88, 0.78, 1)
 light_energy = 1.35
 shadow_enabled = true
 
 [node name="FuegoMistico" type="OmniLight3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.6, 2.7, -1.5)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.85, 4.8, -1.5)
 light_color = Color(0.18, 0.96, 0.82, 1)
 light_energy = 2.8
 omni_range = 10.0
 omni_attenuation = 1.1
+
+[node name="LuzVampiro" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 2.2, -1.8)
+light_color = Color(0.9, 0.25, 0.25, 1)
+light_energy = 1.6
+omni_range = 8.0
+omni_attenuation = 1.2
 
 [node name="RuinasEscenario" parent="." instance=ExtResource("11_ruinas")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
@@ -80,13 +91,14 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14.5, 5, 0)
 shape = SubResource("ParedForma")
 
 [node name="Camera3D" type="Camera3D" parent="." node_paths=PackedStringArray("objetivo", "objetivo2")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.85, 12)
-projection = 1
-size = 6.2
+transform = Transform3D(1, 0, 0, 0, 0.998135, 0.0610485, 0, -0.0610485, 0.998135, 0, 1.35, 7.2)
+fov = 42.0
 script = ExtResource("3_cam")
 objetivo = NodePath("../Personaje")
 objetivo2 = NodePath("../Rival")
-distancia = Vector3(0, 1.85, 12)
+altura_camara = 1.35
+distancia_base = 7.2
+inclinacion_grados = -3.5
 limite_min = Vector2(-5.5, -10)
 limite_max = Vector2(5.5, 10)
 

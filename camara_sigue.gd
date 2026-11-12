@@ -1,11 +1,13 @@
 extends Camera3D
 
-@export var objetivo: Node3D # Jugador 1
-@export var objetivo2: Node3D # Jugador 2
-@export var distancia = Vector3(0, 1.85, 12)
-@export var suavizado = 5.0
-@export var limite_min = Vector2(-5.5, -10) # x y z mínimas (evita enfocar fuera de las paredes)
-@export var limite_max = Vector2(5.5, 10) # x y z máximas
+@export var objetivo: Node3D # Jugador 1 (Paladín)
+@export var objetivo2: Node3D # Jugador 2 (Vampiro)
+@export var altura_camara: float = 1.35 # Altura Y estilo 2.5D (Mortal Kombat)
+@export var distancia_base: float = 7.2 # Distancia Z a los luchadores
+@export var inclinacion_grados: float = -3.5 # Ligera inclinación hacia abajo para anclar el suelo al borde inferior
+@export var suavizado: float = 6.0
+@export var limite_min = Vector2(-5.5, -10)
+@export var limite_max = Vector2(5.5, 10)
 
 
 func _ready():
@@ -13,8 +15,8 @@ func _ready():
 	_buscar_objetivos()
 	var foco = calcular_foco()
 	foco.x = clampf(foco.x, limite_min.x, limite_max.x)
-	global_position = Vector3(foco.x, distancia.y, distancia.z)
-	rotation = Vector3.ZERO
+	global_position = Vector3(foco.x, altura_camara, distancia_base)
+	rotation_degrees = Vector3(inclinacion_grados, 0, 0)
 
 
 func _buscar_objetivos():
@@ -43,7 +45,6 @@ func calcular_foco() -> Vector3:
 	var v2_valido = objetivo2 != null and is_instance_valid(objetivo2)
 
 	if v1_valido and v2_valido:
-		# Mitad exacta entre los dos luchadores
 		var p1 = objetivo.global_position
 		var p2 = objetivo2.global_position
 		return (p1 + p2) * 0.5
@@ -51,7 +52,7 @@ func calcular_foco() -> Vector3:
 		return objetivo.global_position
 	elif v2_valido:
 		return objetivo2.global_position
-	return global_position - distancia
+	return global_position - Vector3(0, 0, distancia_base)
 
 
 func _physics_process(delta):
@@ -61,6 +62,12 @@ func _physics_process(delta):
 	var foco = calcular_foco()
 	foco.x = clampf(foco.x, limite_min.x, limite_max.x)
 
-	var destino = Vector3(foco.x, distancia.y, distancia.z)
+	# Distancia dinámica tipo Mortal Kombat: amplía suavemente cuando se alejan
+	var separacion = 4.0
+	if objetivo != null and objetivo2 != null and is_instance_valid(objetivo) and is_instance_valid(objetivo2):
+		separacion = absf(objetivo.global_position.x - objetivo2.global_position.x)
+	var z_dinamico = clampf(distancia_base + (separacion - 4.0) * 0.22, 6.4, 8.4)
+
+	var destino = Vector3(foco.x, altura_camara, z_dinamico)
 	global_position = global_position.lerp(destino, suavizado * delta)
-	rotation = Vector3.ZERO
+	rotation_degrees = Vector3(inclinacion_grados, 0, 0)
