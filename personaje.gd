@@ -138,11 +138,15 @@ func elegir_estado():
 
 func animar():
 	if accion != "":
-		anim.play(accion)
+		if anim.has_animation(accion):
+			anim.play(accion)
+		elif anim.has_animation("attack"):
+			anim.play("attack")
 		return
 	match estado:
 		Estado.QUIETO:
-			anim.play("idle")
+			if anim.has_animation("idle"):
+				anim.play("idle")
 		Estado.CAMINAR:
 			var hacia_rival_x = 1.0
 			if rival != null and is_instance_valid(rival):
@@ -153,9 +157,13 @@ func animar():
 			else:
 				anim.play("walk", -1, 1.0)
 		Estado.AIRE:
-			anim.play("jump" if velocity.y > 0 else "fall")
+			if anim.has_animation("fall") and velocity.y <= 0:
+				anim.play("fall")
+			elif anim.has_animation("jump"):
+				anim.play("jump")
 		Estado.CURANDO:
-			anim.play("pick-up")
+			if anim.has_animation("pick-up"):
+				anim.play("pick-up")
 
 
 func recibir_golpe(danio):
