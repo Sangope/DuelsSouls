@@ -1,10 +1,10 @@
 [gd_scene format=3 uid="uid://c9r6w2q3b2vam"]
 
-[ext_resource type="Script" path="res://scripts/personaje.gd" id="1_pj"]
+[ext_resource type="Script" uid="uid://bj0372xnq02wk" path="res://scripts/personaje.gd" id="1_pj"]
 [ext_resource type="PackedScene" uid="uid://m2aai4c85exp" path="res://personaje/vampiro_jugador2.glb" id="2_modelo_vampiro"]
-[ext_resource type="Script" path="res://scripts/salud.gd" id="3_salud"]
-[ext_resource type="Script" path="res://scripts/pocion.gd" id="4_pocion"]
-[ext_resource type="Script" path="res://scripts/combate.gd" id="5_combate"]
+[ext_resource type="Script" uid="uid://b8b35uochot2k" path="res://scripts/salud.gd" id="3_salud"]
+[ext_resource type="Script" uid="uid://dnehyb5p8rasw" path="res://scripts/pocion.gd" id="4_pocion"]
+[ext_resource type="Script" uid="uid://uhn120vpk6u1" path="res://scripts/combate.gd" id="5_combate"]
 
 [sub_resource type="CapsuleShape3D" id="CapsulaVampiro"]
 radius = 0.2

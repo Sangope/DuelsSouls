@@ -1,13 +1,11 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://c2m4n8p1q0main"]
 
-[ext_resource type="Script" path="res://scripts/personaje.gd" id="1_pj"]
-[ext_resource type="PackedScene" path="res://escenas/personaje.tscn" id="3_68mvh"]
-[ext_resource type="Script" path="res://scripts/camara_sigue.gd" id="3_cam"]
-[ext_resource type="PackedScene" path="res://escenas/rival.tscn" id="5_lyxkq"]
-[ext_resource type="Script" path="res://scripts/partida.gd" id="6_partida"]
-[ext_resource type="Script" path="res://scripts/hud.gd" id="8_dg7ii"]
-[ext_resource type="PackedScene" path="res://escenas/hud.tscn" id="10_hud"]
-[ext_resource type="PackedScene" path="res://escenario/escenario_ruinas.tscn" id="11_ruinas"]
+[ext_resource type="PackedScene" uid="uid://c8k5v1p2a1pal" path="res://escenas/personaje.tscn" id="1_p1"]
+[ext_resource type="PackedScene" uid="uid://c9r6w2q3b2vam" path="res://escenas/rival.tscn" id="2_p2"]
+[ext_resource type="Script" uid="uid://bjnkfmtepv5oo" path="res://scripts/camara_sigue.gd" id="3_cam"]
+[ext_resource type="Script" uid="uid://jsp6xcl6decy" path="res://scripts/partida.gd" id="4_partida"]
+[ext_resource type="PackedScene" uid="uid://d4f7h2o3m1hud" path="res://escenas/hud.tscn" id="5_hud"]
+[ext_resource type="PackedScene" path="res://escenario/escenario_ruinas.tscn" id="6_ruinas"]
 
 [sub_resource type="ProceduralSkyMaterial" id="CieloMat"]
 sky_top_color = Color(0.14, 0.11, 0.2, 1)
@@ -60,7 +58,7 @@ light_energy = 0.9
 omni_range = 7.0
 omni_attenuation = 1.2
 
-[node name="RuinasEscenario" type="Node3D" parent="." unique_id=1227026509 instance=ExtResource("11_ruinas")]
+[node name="RuinasEscenario" parent="." unique_id=1227026509 instance=ExtResource("6_ruinas")]
 
 [node name="Suelo" type="StaticBody3D" parent="." unique_id=1082121937]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -5, 0)
@@ -82,34 +80,20 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14.5, 5, 0)
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Paredes/ParedDerecha" unique_id=787194310]
 shape = SubResource("ParedForma")
 
-[node name="Camera3D" type="Camera3D" parent="." unique_id=981083866]
+[node name="Camera3D" type="Camera3D" parent="." unique_id=981083866 node_paths=PackedStringArray("objetivo", "objetivo2")]
 transform = Transform3D(1, 0, 0, 0, 0.998135, 0.0610485, 0, -0.0610485, 0.998135, 0, 1.35, 7.2)
 fov = 42.0
 script = ExtResource("3_cam")
+objetivo = NodePath("../Personaje")
+objetivo2 = NodePath("../Rival")
 
-[node name="Personaje" type="CharacterBody3D" parent="." unique_id=431959906 groups=["jugador", "luchador"] instance=ExtResource("3_68mvh")]
+[node name="Personaje" parent="." unique_id=431959906 instance=ExtResource("1_p1")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0, 0)
-collision_layer = 2
-axis_lock_linear_z = true
-script = ExtResource("1_pj")
-accion_izquierda = "p1_move_left"
-accion_derecha = "p1_move_right"
-accion_saltar = "p1_saltar"
-accion_pocion = "p1_pocion"
 
-[node name="Rival" type="CharacterBody3D" parent="." unique_id=767716016 groups=["luchador", "rival"] instance=ExtResource("5_lyxkq")]
+[node name="Rival" parent="." unique_id=767716016 instance=ExtResource("2_p2")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0, 0)
-collision_layer = 2
-axis_lock_linear_z = true
-script = ExtResource("1_pj")
-jugador_id = 2
-accion_izquierda = "p2_move_left"
-accion_derecha = "p2_move_right"
-accion_saltar = "p2_saltar"
-accion_pocion = "p2_pocion"
 
 [node name="Partida" type="Node" parent="." unique_id=587814300]
-script = ExtResource("6_partida")
+script = ExtResource("4_partida")
 
-[node name="HUD" type="CanvasLayer" parent="." unique_id=1353932642 instance=ExtResource("10_hud")]
-script = ExtResource("8_dg7ii")
+[node name="HUD" parent="." unique_id=1353932642 instance=ExtResource("5_hud")]

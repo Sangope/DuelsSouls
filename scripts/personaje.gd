@@ -121,6 +121,7 @@ func _physics_process(delta):
 	velocity.z = 0.0
 
 	move_and_slide()
+	empuje = empuje.move_toward(Vector3.ZERO, 2.0 * delta)
 
 	# Limitar la posición X por código (clamp) por seguridad y asegurar Z = 0
 	global_position.x = clampf(global_position.x, limite_x_min, limite_x_max)

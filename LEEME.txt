@@ -6,7 +6,7 @@ Estructura del proyecto
 - escenas/main.tscn          Escena principal del combate (instancia escenario, cámara, HUD, J1 y J2).
 - escenas/personaje.tscn     Escena independiente de J1 (Paladín).
 - escenas/rival.tscn         Escena independiente de J2 (Vampiro).
-- escenas/hud.tscn           Interfaz de barras de vida, pociones, tiempo y guía de controles.
+- escenas/hud.tscn           HUD minimalista con temporizador en pantalla; la vida se muestra en consola.
 - scripts/personaje.gd       Movimiento 2.5D, salto, orientación hacia el rival y máquina de estados.
 - scripts/combate.gd         Sistema de combate cuerpo a cuerpo (2 ataques por luchador, alcance, impacto y KO).
 - scripts/salud.gd           Salud, curación e invulnerabilidad temporal tras impacto.
