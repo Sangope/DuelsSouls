@@ -7,46 +7,33 @@
 [ext_resource type="Script" uid="uid://uhn120vpk6u1" path="res://scripts/combate.gd" id="5_combate"]
 
 [sub_resource type="CapsuleShape3D" id="CapsulaPaladin"]
-radius = 0.5
-height = 1.75
+radius = 0.1694336
+height = 1.5498047
 
-[node name="Personaje" type="CharacterBody3D" groups=["jugador", "luchador"]]
+[node name="Personaje" type="CharacterBody3D" unique_id=1408392876 groups=["jugador", "luchador"]]
 collision_layer = 2
 collision_mask = 3
 axis_lock_linear_z = true
 script = ExtResource("1_pj")
-jugador_id = 1
-altura_salto = 1.6
 accion_izquierda = "p1_move_left"
 accion_derecha = "p1_move_right"
 accion_saltar = "p1_saltar"
 accion_pocion = "p1_pocion"
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.875, 0)
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=2031667236]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.010458946, 0.77490234, 0)
 shape = SubResource("CapsulaPaladin")
 
-[node name="Modelo" parent="." instance=ExtResource("2_modelo_paladin")]
+[node name="Modelo" parent="." unique_id=787820838 instance=ExtResource("2_modelo_paladin")]
 transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, 0, 0, 0)
 
-[node name="Salud" type="Node" parent="."]
+[node name="Salud" type="Node" parent="." unique_id=1363805822]
 script = ExtResource("3_salud")
 invulnerable = 0.25
 
-[node name="Pocion" type="Node" parent="."]
+[node name="Pocion" type="Node" parent="." unique_id=1749728803]
 script = ExtResource("4_pocion")
 tecla = "p1_pocion"
-curacion = 30
 
-[node name="Combate" type="Node" parent="."]
+[node name="Combate" type="Node" parent="." unique_id=271737070]
 script = ExtResource("5_combate")
-accion_ataque_1 = "p1_ataque_1"
-anim_ataque_1 = "attack"
-danio_1 = 20
-alcance_1 = 1.75
-duracion_1 = 0.55
-momento_golpe_1 = 0.22
-velocidad_anim_1 = 1.8
-accion_cubrirse = "p1_cubrirse"
-anim_cubrirse = "block"
-velocidad_anim_cubrirse = 1.6

@@ -1,7 +1,7 @@
-[gd_scene format=3 uid="uid://c2m4n8p1q0main"]
+[gd_scene format=3 uid="uid://cvcr3dypgracb"]
 
 [ext_resource type="PackedScene" uid="uid://c8k5v1p2a1pal" path="res://escenas/personaje.tscn" id="1_p1"]
-[ext_resource type="PackedScene" uid="uid://c9r6w2q3b2vam" path="res://escenas/rival.tscn" id="2_p2"]
+[ext_resource type="PackedScene" uid="uid://dar6w2q3b2vam" path="res://escenas/rival.tscn" id="2_p2"]
 [ext_resource type="Script" uid="uid://bjnkfmtepv5oo" path="res://scripts/camara_sigue.gd" id="3_cam"]
 [ext_resource type="Script" uid="uid://jsp6xcl6decy" path="res://scripts/partida.gd" id="4_partida"]
 [ext_resource type="PackedScene" uid="uid://d4f7h2o3m1hud" path="res://escenas/hud.tscn" id="5_hud"]
@@ -69,15 +69,17 @@ shape = SubResource("PisoForma")
 [node name="Paredes" type="Node3D" parent="." unique_id=276865965]
 
 [node name="ParedIzquierda" type="StaticBody3D" parent="Paredes" unique_id=1875226280]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14.5, 5, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10.39633, 5, 0)
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Paredes/ParedIzquierda" unique_id=1991461032]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.430596, 0, 0)
 shape = SubResource("ParedForma")
 
 [node name="ParedDerecha" type="StaticBody3D" parent="Paredes" unique_id=1706942790]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14.5, 5, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.839373, 5, 0)
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Paredes/ParedDerecha" unique_id=787194310]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.2736025, 0, -0.1318016)
 shape = SubResource("ParedForma")
 
 [node name="Camera3D" type="Camera3D" parent="." unique_id=981083866 node_paths=PackedStringArray("objetivo", "objetivo2")]

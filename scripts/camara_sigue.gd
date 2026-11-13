@@ -1,8 +1,8 @@
 extends Camera3D
 
-@export var objetivo: Node3D # Jugador 1 (Paladín)
-@export var objetivo2: Node3D # Jugador 2 (Vampiro)
-@export var altura_camara: float = 1.35 # Altura Y estilo 2.5D (Mortal Kombat)
+@export var objetivo: Node3D # Jugador 1 
+@export var objetivo2: Node3D # Jugador 2 
+@export var altura_camara: float = 1.35 # Altura Y estilo 2.5D 
 @export var distancia_base: float = 7.2 # Distancia Z a los luchadores
 @export var inclinacion_grados: float = -3.5 # Ligera inclinación hacia abajo para anclar el suelo al borde inferior
 @export var suavizado: float = 6.0

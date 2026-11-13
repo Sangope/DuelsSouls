@@ -9,10 +9,11 @@ const RAPIDEZ_MAX = [0.0, 3.5, 3.5, 0.0, 0.0] # rapidez máxima en m/s, en el or
 @export var speed_atras: float = 2.4
 @export var tiempo_arranque: float = 0.2
 @export var gravedad: float = 28.0
-@export var altura_salto: float = 1.6
+@export var altura_salto: float = 1.8
 @export var limite_x_min: float = -13.5
 @export var limite_x_max: float = 13.5
 @export var separacion_minima: float = 1.0
+@export var altura_salto_libre: float = 0.55
 @export var rival: Node3D
 
 @export_group("Controles")
@@ -33,6 +34,8 @@ var avance: float = 0.0            # la parte de la velocidad que dan las teclas
 var estado: Estado = Estado.QUIETO
 var rapidez_max: float = 0.0
 var _ultimo_movimiento: String = "quieto"
+var _cruce_aereo: bool = false
+var _dir_cruce: float = 0.0
 
 # Propiedad para interoperabilidad con partida.gd y sistemas de combate
 var vida: int:
@@ -130,10 +133,12 @@ func _physics_process(delta):
 	velocity.x = avance + empuje.x
 	velocity.z = 0.0
 
+	_actualizar_cruce_aereo()
 	_limitar_velocidad_hacia_rival()
 	move_and_slide()
 	empuje = empuje.move_toward(Vector3.ZERO, 2.0 * delta)
 	_evitar_atravesar_rival()
+	_actualizar_cruce_aereo()
 
 	# Limitar la posición X por código (clamp) por seguridad y asegurar Z = 0
 	global_position.x = clampf(global_position.x, limite_x_min, limite_x_max)
@@ -146,12 +151,54 @@ func _physics_process(delta):
 	_prueba()
 
 
+func _esta_sobre_rival() -> bool:
+	if rival == null or not is_instance_valid(rival):
+		return false
+	var dy_sep: float = absf(global_position.y - rival.global_position.y)
+	return dy_sep >= altura_salto_libre and (not is_on_floor() or not rival.is_on_floor())
+
+
+func _en_cruce_activo() -> bool:
+	if rival == null or not is_instance_valid(rival):
+		return false
+	return _cruce_aereo or bool(rival.get("_cruce_aereo")) or _esta_sobre_rival()
+
+
+func _actualizar_cruce_aereo() -> void:
+	if rival == null or not is_instance_valid(rival):
+		_cruce_aereo = false
+		return
+	var dx_act: float = absf(global_position.x - rival.global_position.x)
+	var sobre_rival: bool = _esta_sobre_rival()
+	if sobre_rival:
+		_cruce_aereo = true
+		var vel_x: float = avance + empuje.x
+		if absf(vel_x) > 0.1:
+			_dir_cruce = signf(vel_x)
+		elif absf(rival.global_position.x - global_position.x) > 0.02:
+			_dir_cruce = signf(rival.global_position.x - global_position.x)
+	elif is_on_floor() and dx_act >= separacion_minima - 0.02:
+		_cruce_aereo = false
+
+	var rival_cuerpo := rival as PhysicsBody3D
+	if _en_cruce_activo():
+		add_collision_exception_with(rival)
+		if rival_cuerpo:
+			rival_cuerpo.add_collision_exception_with(self)
+	else:
+		remove_collision_exception_with(rival)
+		if rival_cuerpo:
+			rival_cuerpo.remove_collision_exception_with(self)
+
+
 func _limitar_velocidad_hacia_rival():
 	if rival == null or not is_instance_valid(rival):
 		return
+	if _en_cruce_activo():
+		return
 	var dx: float = rival.global_position.x - global_position.x
 	var dy: float = absf(rival.global_position.y - global_position.y)
-	if dy < 1.65 and absf(dx) <= separacion_minima + 0.015:
+	if dy < altura_salto_libre and absf(dx) <= separacion_minima + 0.015:
 		var dir_rival: float = 1.0 if dx >= 0.0 else -1.0
 		if signf(velocity.x) == dir_rival:
 			velocity.x = 0.0
@@ -163,8 +210,10 @@ func _direccion_separacion_rival() -> float:
 	if rival == null or not is_instance_valid(rival):
 		return -1.0 if jugador_id == 1 else 1.0
 	var dx: float = global_position.x - rival.global_position.x
-	if absf(dx) > 0.01:
+	if absf(dx) > 0.05:
 		return 1.0 if dx > 0.0 else -1.0
+	if _cruce_aereo and _dir_cruce != 0.0:
+		return _dir_cruce
 	if global_position.x > limite_x_max - 1.0:
 		return -1.0
 	if global_position.x < limite_x_min + 1.0:
@@ -175,32 +224,36 @@ func _direccion_separacion_rival() -> float:
 func _evitar_atravesar_rival():
 	if rival == null or not is_instance_valid(rival):
 		return
+	if _esta_sobre_rival():
+		return
 
-	# Evitar quedar parado encima de la cabeza del contrincante al caer de un salto
-	for i in get_slide_collision_count():
-		var col := get_slide_collision(i)
-		if col.get_collider() == rival and col.get_normal().y > 0.45:
-			var dir_escape: float = _direccion_separacion_rival()
-			empuje.x = dir_escape * 3.0
-			velocity.x = empuje.x
-			global_position.x = clampf(global_position.x + dir_escape * 0.06, limite_x_min, limite_x_max)
-			break
+	# Mientras un personaje siga cayendo sobre el otro, dejarlo caer libremente hasta tocar el suelo
+	if not is_on_floor() or (rival.has_method("is_on_floor") and not rival.is_on_floor()):
+		return
 
-	# Separación mínima horizontal garantizada mientras coincidan en altura
+	# Separación mínima horizontal garantizada al compartir el suelo (respetando paredes)
 	var dx_act: float = global_position.x - rival.global_position.x
 	var dy_act: float = absf(global_position.y - rival.global_position.y)
-	if dy_act < 1.65 and absf(dx_act) < separacion_minima:
-		var falta: float = separacion_minima - absf(dx_act)
+	if dy_act < altura_salto_libre and absf(dx_act) < separacion_minima:
+		var falta: float = separacion_minima - absf(dx_act) + 0.005
 		var dir_sep: float = _direccion_separacion_rival()
-		global_position.x = clampf(global_position.x + dir_sep * (falta * 0.5 + 0.002), limite_x_min, limite_x_max)
-		rival.global_position.x = clampf(rival.global_position.x - dir_sep * (falta * 0.5 + 0.002), limite_x_min, limite_x_max)
+		add_collision_exception_with(rival)
+		var rival_cuerpo := rival as CharacterBody3D
+		if rival_cuerpo:
+			rival_cuerpo.add_collision_exception_with(self)
+		var col1: KinematicCollision3D = move_and_collide(Vector3(dir_sep * (falta * 0.5), 0.0, 0.0))
+		var col2: KinematicCollision3D = rival_cuerpo.move_and_collide(Vector3(-dir_sep * (falta * 0.5), 0.0, 0.0)) if rival_cuerpo else null
 		var dist_post: float = absf(global_position.x - rival.global_position.x)
 		if dist_post < separacion_minima:
-			var dir_post: float = 1.0 if global_position.x >= rival.global_position.x else -1.0
-			if absf(global_position.x) > absf(rival.global_position.x):
-				rival.global_position.x = clampf(global_position.x - dir_post * separacion_minima, limite_x_min, limite_x_max)
+			var rest: float = separacion_minima - dist_post + 0.005
+			if col1 != null and col2 == null and rival_cuerpo:
+				rival_cuerpo.move_and_collide(Vector3(-dir_sep * rest, 0.0, 0.0))
+			elif col2 != null and col1 == null:
+				move_and_collide(Vector3(dir_sep * rest, 0.0, 0.0))
 			else:
-				global_position.x = clampf(rival.global_position.x + dir_post * separacion_minima, limite_x_min, limite_x_max)
+				if rival_cuerpo:
+					rival_cuerpo.move_and_collide(Vector3(-dir_sep * (rest * 0.5), 0.0, 0.0))
+				move_and_collide(Vector3(dir_sep * (rest * 0.5), 0.0, 0.0))
 
 
 func _reportar_movimiento(hacia_rival_x: float) -> void:
@@ -298,11 +351,6 @@ func recibir_golpe(danio):
 	if salud != null and salud.has_method("recibir_golpe"):
 		salud.recibir_golpe(danio)
 
-
-# ---------------------------------------------------------------------------
-# PRUEBAS AUTOMÁTICAS. En el Inspector del Personaje la opción "Prueba" queda
-# en "Ninguna" (0) según el cronograma.
-# ---------------------------------------------------------------------------
 @export_enum("Ninguna", "Avanzar 60 cuadros", "Avanzar 60 y soltar", "Avanzar y la acción desde el cuadro 30", "Mantener la acción 2 s", "Avanzar con la acción 60 cuadros", "Diagonal W+D 60 cuadros") var prueba = 0
 @export var accion_prueba = ""
 var _cuadro = 0
