@@ -1,41 +1,35 @@
-========================================
-DUELS SOULS - Juego de Combate 2.5D
-========================================
+DuelsSouls — Juego de pelea 1v1 en Godot 4.7
+================================================
 
-Proyecto de pelea 1v1 en arena plana con vista 2.5D y cámara ortográfica.
-Desarrollado en Godot Engine 4.
+Estructura del proyecto
+-----------------------
+- escenas/main.tscn          Escena principal del combate (instancia escenario, cámara, HUD, J1 y J2).
+- escenas/personaje.tscn     Escena independiente de J1 (Paladín).
+- escenas/rival.tscn         Escena independiente de J2 (Vampiro).
+- escenas/hud.tscn           Interfaz de barras de vida, pociones, tiempo y guía de controles.
+- scripts/personaje.gd       Movimiento 2.5D, salto, orientación hacia el rival y máquina de estados.
+- scripts/combate.gd         Sistema de combate cuerpo a cuerpo (2 ataques por luchador, alcance, impacto y KO).
+- scripts/salud.gd           Salud, curación e invulnerabilidad temporal tras impacto.
+- scripts/pocion.gd          Curación con pociones limitadas y recarga.
+- scripts/camara_sigue.gd    Cámara 2.5D tipo Mortal Kombat centrada entre ambos luchadores.
+- scripts/partida.gd         Temporizador y estado de partida.
+- scripts/hud.gd             Actualización del HUD de ambos jugadores.
+- escenario/                 Escenario 3D de ruinas estilo Blasphemous/Mortal Kombat + shader pixel art.
+- personaje/                 Modelos .glb y texturas de Paladín (J1) y Vampiro (J2).
+- talleres_anteriores/       Escenas y prototipos de talleres anteriores archivados.
 
-CONTROLES:
-----------------------------------------
-[Jugador 1] (Luchador Izquierdo - Paladín):
-- A / D: Moverse a la izquierda / derecha (hacia el frente a 3.5 m/s o hacia atrás a 2.4 m/s sin darle la espalda al rival)
-- W / Barra Espaciadora: Saltar
-- C / E: Usar Poción
-- J / Z / Enter: Ataque
+Controles
+---------
+Jugador 1 — Paladín (WASD + J/K/L):
+- A / D           : Mover izquierda / derecha
+- W o Espacio     : Saltar
+- J               : Ataque principal con espada (18 de daño)
+- K               : Patada baja (10 de daño; esquivable saltando)
+- L               : Poción de curación (+30 HP)
 
-[Jugador 2] (Luchador Derecho - Vampiro):
-- Flechas Izquierda / Derecha: Moverse a la izquierda / derecha (hacia el frente a 3.5 m/s o hacia atrás a 2.4 m/s sin darle la espalda al rival)
-- Flecha Arriba: Saltar
-- P / Teclado Numérico 1: Usar Poción
-- O / Teclado Numérico 2: Ataque
-
-CARACTERÍSTICAS IMPLEMENTADAS:
-----------------------------------------
-1. Base limpia y unificada:
-   - Integración completa de todos los módulos de los talleres (rival.gd, mente_rival.gd, salud.gd, partida.gd, hud.tscn, sistemas de luces).
-   - Opciones de pruebas automáticas configuradas en "Ninguna" por defecto.
-   - Escenario de main.tscn limpio y plano para la arena 1v1 (eliminadas plataformas flotantes innecesarias).
-
-2. Arena, límites y movimiento 1v1:
-   - Suelo plano en el plano Z = 0 con límites laterales sólidos que evitan caídas o salidas del mapa.
-   - Límite de posición en X por código (clamp) de seguridad.
-   - Colisión entre ambos personajes para que no se atraviesen ni se arrastren al empujarse.
-   - Cámara de seguimiento ortográfica que calcula en tiempo real el punto medio entre ambos luchadores y respeta los límites del mapa para no enfocar fuera de las paredes.
-   - Orientación dinámica: ambos personajes se mantienen siempre mirándose de frente en el plano Z = 0, sin importar la tecla presionada.
-   - Velocidad de avance al frente a 3.5 m/s y retroceso a 2.4 m/s manteniendo siempre la mirada hacia el contrincante.
-
-3. Escenario Inmersivo y Modelos Mixamo:
-   - Escenario estilo Blasphemous: terraza de catedral gótica con arcadas, estatua colosal con cáliz encendido en llama mística turquesa, cielo crepuscular y suelo de piedra macizo que elimina el vacío negro inferior.
-   - Cámara ortográfica calibrada para fijar el suelo en la parte inferior de la pantalla con amplio espacio superior para saltos.
-   - Jugador 1: Skin del Paladín con armadura, espada y escudo, con animaciones de Mixamo procesadas in-place.
-   - Jugador 2: Skin del Vampiro con capa y vestimenta gótica, con animaciones de Mixamo procesadas in-place.
+Jugador 2 — Vampiro (Flechas + 1/2/3):
+- Flecha Izq/Der  : Mover izquierda / derecha
+- Flecha Arriba   : Saltar
+- 1 (o Numpad 1)  : Golpe de puño (15 de daño)
+- 2 (o Numpad 2)  : Patada baja (10 de daño; esquivable saltando)
+- 3 (o Numpad 3)  : Poción de curación (+30 HP)

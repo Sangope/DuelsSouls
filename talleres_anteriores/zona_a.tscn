@@ -1,10 +1,10 @@
 [gd_scene format=3]
 
-[ext_resource type="Script" path="res://sistema_sol.gd" id="1_ssol"]
-[ext_resource type="Script" path="res://ciclo_dia.gd" id="2_cdia"]
-[ext_resource type="PackedScene" path="res://personaje/character-male-a.glb" id="3_duelista"]
-[ext_resource type="PackedScene" path="res://personaje/character-male-d.glb" id="4_rival"]
-[ext_resource type="Script" path="res://fotometro.gd" id="5_foto"]
+[ext_resource type="Script" path="res://talleres_anteriores/sistema_sol.gd" id="1_ssol"]
+[ext_resource type="Script" path="res://talleres_anteriores/ciclo_dia.gd" id="2_cdia"]
+[ext_resource type="PackedScene" path="res://talleres_anteriores/personajes_kenney/character-male-a.glb" id="3_duelista"]
+[ext_resource type="PackedScene" path="res://talleres_anteriores/personajes_kenney/character-male-d.glb" id="4_rival"]
+[ext_resource type="Script" path="res://talleres_anteriores/fotometro.gd" id="5_foto"]
 
 [sub_resource type="Environment" id="EntornoArena"]
 background_mode = 1

@@ -1,0 +1,115 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/personaje.gd" id="1_pj"]
+[ext_resource type="PackedScene" path="res://escenas/personaje.tscn" id="3_68mvh"]
+[ext_resource type="Script" path="res://scripts/camara_sigue.gd" id="3_cam"]
+[ext_resource type="PackedScene" path="res://escenas/rival.tscn" id="5_lyxkq"]
+[ext_resource type="Script" path="res://scripts/partida.gd" id="6_partida"]
+[ext_resource type="Script" path="res://scripts/hud.gd" id="8_dg7ii"]
+[ext_resource type="PackedScene" path="res://escenas/hud.tscn" id="10_hud"]
+[ext_resource type="PackedScene" path="res://escenario/escenario_ruinas.tscn" id="11_ruinas"]
+
+[sub_resource type="ProceduralSkyMaterial" id="CieloMat"]
+sky_top_color = Color(0.14, 0.11, 0.2, 1)
+sky_horizon_color = Color(0.72, 0.44, 0.46, 1)
+ground_bottom_color = Color(0.1, 0.08, 0.12, 1)
+ground_horizon_color = Color(0.48, 0.3, 0.32, 1)
+
+[sub_resource type="Sky" id="Cielo"]
+sky_material = SubResource("CieloMat")
+
+[sub_resource type="Environment" id="Entorno"]
+background_mode = 2
+sky = SubResource("Cielo")
+ambient_light_source = 3
+ambient_light_color = Color(0.4, 0.32, 0.36, 1)
+ambient_light_energy = 1.15
+fog_enabled = true
+fog_light_color = Color(0.48, 0.32, 0.36, 1)
+fog_density = 0.012
+fog_sky_affect = 0.4
+
+[sub_resource type="BoxShape3D" id="PisoForma"]
+size = Vector3(36, 10, 8)
+
+[sub_resource type="BoxShape3D" id="ParedForma"]
+size = Vector3(1, 14, 8)
+
+[node name="Main" type="Node3D" unique_id=243618063]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=424458765]
+environment = SubResource("Entorno")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=467570287]
+transform = Transform3D(0.92388, -0.191342, 0.331414, 0, 0.866025, 0.5, -0.382683, -0.46194, 0.800103, 0, 8, 4)
+light_color = Color(1, 0.88, 0.78, 1)
+light_energy = 1.35
+shadow_enabled = true
+
+[node name="LuzPaladin" type="OmniLight3D" parent="." unique_id=1353278278]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.5, 2.2, -0.5)
+light_color = Color(0.75, 0.88, 1, 1)
+light_energy = 0.8
+omni_range = 7.0
+omni_attenuation = 1.2
+
+[node name="LuzVampiro" type="OmniLight3D" parent="." unique_id=1398709534]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.5, 2.2, -0.5)
+light_color = Color(0.95, 0.35, 0.25, 1)
+light_energy = 0.9
+omni_range = 7.0
+omni_attenuation = 1.2
+
+[node name="RuinasEscenario" type="Node3D" parent="." unique_id=1227026509 instance=ExtResource("11_ruinas")]
+
+[node name="Suelo" type="StaticBody3D" parent="." unique_id=1082121937]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -5, 0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Suelo" unique_id=1780400016]
+shape = SubResource("PisoForma")
+
+[node name="Paredes" type="Node3D" parent="." unique_id=276865965]
+
+[node name="ParedIzquierda" type="StaticBody3D" parent="Paredes" unique_id=1875226280]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14.5, 5, 0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Paredes/ParedIzquierda" unique_id=1991461032]
+shape = SubResource("ParedForma")
+
+[node name="ParedDerecha" type="StaticBody3D" parent="Paredes" unique_id=1706942790]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14.5, 5, 0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Paredes/ParedDerecha" unique_id=787194310]
+shape = SubResource("ParedForma")
+
+[node name="Camera3D" type="Camera3D" parent="." unique_id=981083866]
+transform = Transform3D(1, 0, 0, 0, 0.998135, 0.0610485, 0, -0.0610485, 0.998135, 0, 1.35, 7.2)
+fov = 42.0
+script = ExtResource("3_cam")
+
+[node name="Personaje" type="CharacterBody3D" parent="." unique_id=431959906 groups=["jugador", "luchador"] instance=ExtResource("3_68mvh")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0, 0)
+collision_layer = 2
+axis_lock_linear_z = true
+script = ExtResource("1_pj")
+accion_izquierda = "p1_move_left"
+accion_derecha = "p1_move_right"
+accion_saltar = "p1_saltar"
+accion_pocion = "p1_pocion"
+
+[node name="Rival" type="CharacterBody3D" parent="." unique_id=767716016 groups=["luchador", "rival"] instance=ExtResource("5_lyxkq")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0, 0)
+collision_layer = 2
+axis_lock_linear_z = true
+script = ExtResource("1_pj")
+jugador_id = 2
+accion_izquierda = "p2_move_left"
+accion_derecha = "p2_move_right"
+accion_saltar = "p2_saltar"
+accion_pocion = "p2_pocion"
+
+[node name="Partida" type="Node" parent="." unique_id=587814300]
+script = ExtResource("6_partida")
+
+[node name="HUD" type="CanvasLayer" parent="." unique_id=1353932642 instance=ExtResource("10_hud")]
+script = ExtResource("8_dg7ii")

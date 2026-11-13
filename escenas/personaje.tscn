@@ -1,0 +1,57 @@
+[gd_scene format=3 uid="uid://c8k5v1p2a1pal"]
+
+[ext_resource type="Script" path="res://scripts/personaje.gd" id="1_pj"]
+[ext_resource type="PackedScene" uid="uid://d282freiswtj5" path="res://personaje/paladin_jugador1.glb" id="2_modelo_paladin"]
+[ext_resource type="Script" path="res://scripts/salud.gd" id="3_salud"]
+[ext_resource type="Script" path="res://scripts/pocion.gd" id="4_pocion"]
+[ext_resource type="Script" path="res://scripts/combate.gd" id="5_combate"]
+
+[sub_resource type="CapsuleShape3D" id="CapsulaPaladin"]
+radius = 0.2
+height = 1.75
+
+[node name="Personaje" type="CharacterBody3D" groups=["jugador", "luchador"]]
+collision_layer = 2
+axis_lock_linear_z = true
+script = ExtResource("1_pj")
+jugador_id = 1
+altura_salto = 1.6
+accion_izquierda = "p1_move_left"
+accion_derecha = "p1_move_right"
+accion_saltar = "p1_saltar"
+accion_pocion = "p1_pocion"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.875, 0)
+shape = SubResource("CapsulaPaladin")
+
+[node name="Modelo" parent="." instance=ExtResource("2_modelo_paladin")]
+transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, 0, 0, 0)
+
+[node name="Salud" type="Node" parent="."]
+script = ExtResource("3_salud")
+invulnerable = 0.25
+
+[node name="Pocion" type="Node" parent="."]
+script = ExtResource("4_pocion")
+tecla = "p1_pocion"
+curacion = 30
+
+[node name="Combate" type="Node" parent="."]
+script = ExtResource("5_combate")
+accion_ataque_1 = "p1_ataque_1"
+anim_ataque_1 = "attack"
+danio_1 = 18
+alcance_1 = 1.75
+duracion_1 = 0.55
+momento_golpe_1 = 0.22
+velocidad_anim_1 = 1.8
+es_bajo_1 = false
+accion_ataque_2 = "p1_ataque_2"
+anim_ataque_2 = "kick"
+danio_2 = 10
+alcance_2 = 1.5
+duracion_2 = 0.42
+momento_golpe_2 = 0.16
+velocidad_anim_2 = 1.5
+es_bajo_2 = true

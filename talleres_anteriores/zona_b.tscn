@@ -1,10 +1,10 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://cjj586uh5migm"]
 
-[ext_resource type="Script" path="res://luz_parpadeante.gd" id="1_lparp"]
-[ext_resource type="PackedScene" path="res://personaje/character-male-a.glb" id="2_duelista"]
-[ext_resource type="PackedScene" path="res://personaje/character-male-d.glb" id="3_rival"]
-[ext_resource type="Script" path="res://disparador.gd" id="4_disp"]
-[ext_resource type="Script" path="res://sistema_eventos.gd" id="5_seve"]
+[ext_resource type="Script" uid="uid://c4ledt6ge0p0v" path="res://talleres_anteriores/luz_parpadeante.gd" id="1_lparp"]
+[ext_resource type="PackedScene" uid="uid://biu6tppn8ml1q" path="res://talleres_anteriores/personajes_kenney/character-male-a.glb" id="2_duelista"]
+[ext_resource type="PackedScene" uid="uid://52giffn4ww16" path="res://talleres_anteriores/personajes_kenney/character-male-d.glb" id="3_rival"]
+[ext_resource type="Script" uid="uid://c1wwehl68pjfx" path="res://talleres_anteriores/disparador.gd" id="4_disp"]
+[ext_resource type="Script" uid="uid://bsus6rgpqxtts" path="res://talleres_anteriores/sistema_eventos.gd" id="5_seve"]
 
 [sub_resource type="Environment" id="EntornoAltar"]
 background_mode = 1
@@ -39,118 +39,106 @@ albedo_color = Color(0.38, 0.28, 0.12, 1)
 roughness = 0.8
 
 [sub_resource type="BoxMesh" id="PlatArenaMalla"]
-size = Vector3(3.0, 0.6, 3.5)
+size = Vector3(3, 0.6, 3.5)
 
 [sub_resource type="StandardMaterial3D" id="RojoPiedraMat"]
 albedo_color = Color(0.35, 0.11, 0.13, 1)
 roughness = 0.85
 
 [sub_resource type="BoxShape3D" id="DisparadorForma"]
-size = Vector3(1, 1, 1)
 
-[node name="ZonaB" type="Node3D"]
+[node name="ZonaB" type="Node3D" unique_id=250658646]
 
-[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1294686714]
 environment = SubResource("EntornoAltar")
 
-[node name="Sol" type="DirectionalLight3D" parent="."]
+[node name="Sol" type="DirectionalLight3D" parent="." unique_id=446902061]
 transform = Transform3D(0.422618, 0.23457, -0.875426, 0, 0.965926, 0.258819, 0.906308, -0.109382, 0.408218, 0, 6, 0)
 light_color = Color(1, 0.3478, 0.3626, 1)
 light_energy = 0.3106
 shadow_enabled = true
 shadow_bias = 0.05
 
-[node name="Suelo" type="StaticBody3D" parent="."]
+[node name="Suelo" type="StaticBody3D" parent="." unique_id=608878736]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
 
-[node name="PisoArena" type="MeshInstance3D" parent="Suelo"]
+[node name="PisoArena" type="MeshInstance3D" parent="Suelo" unique_id=544371257]
 mesh = SubResource("PisoMalla")
 surface_material_override/0 = SubResource("PisoMat")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Suelo"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Suelo" unique_id=1518453179]
 shape = SubResource("PisoForma")
 
-[node name="AltarFondo" type="Node3D" parent="."]
+[node name="AltarFondo" type="Node3D" parent="." unique_id=1006138099]
 
-[node name="PilarIzq" type="MeshInstance3D" parent="AltarFondo"]
+[node name="PilarIzq" type="MeshInstance3D" parent="AltarFondo" unique_id=475738741]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.5, 2.25, -2.2)
 mesh = SubResource("PilarMalla")
 surface_material_override/0 = SubResource("PiedraMat")
 
-[node name="AltarCentral" type="MeshInstance3D" parent="AltarFondo"]
+[node name="AltarCentral" type="MeshInstance3D" parent="AltarFondo" unique_id=790463534]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6, -2.4)
 mesh = SubResource("AltarMalla")
 surface_material_override/0 = SubResource("DoradoPiedraMat")
 
-[node name="PilarDer" type="MeshInstance3D" parent="AltarFondo"]
+[node name="PilarDer" type="MeshInstance3D" parent="AltarFondo" unique_id=1039142645]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.5, 2.25, -2.2)
 mesh = SubResource("PilarMalla")
 surface_material_override/0 = SubResource("PiedraMat")
 
-[node name="TarimaIzq" type="MeshInstance3D" parent="AltarFondo"]
+[node name="TarimaIzq" type="MeshInstance3D" parent="AltarFondo" unique_id=928836020]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.2, 0.3, 0)
 mesh = SubResource("PlatArenaMalla")
 surface_material_override/0 = SubResource("RojoPiedraMat")
 
-[node name="TarimaDer" type="MeshInstance3D" parent="AltarFondo"]
+[node name="TarimaDer" type="MeshInstance3D" parent="AltarFondo" unique_id=1790823768]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.2, 0.3, 0)
 mesh = SubResource("PlatArenaMalla")
 surface_material_override/0 = SubResource("RojoPiedraMat")
 
-[node name="Duelista" parent="." instance=ExtResource("2_duelista")]
+[node name="Duelista" parent="." unique_id=1254915399 instance=ExtResource("2_duelista")]
 transform = Transform3D(0, 0, 2.6, 0, 2.6, 0, -2.6, 0, 0, -1.3, 0, 0)
 
-[node name="RivalArena" parent="." instance=ExtResource("3_rival")]
+[node name="RivalArena" parent="." unique_id=932323283 instance=ExtResource("3_rival")]
 transform = Transform3D(0, 0, -2.6, 0, 2.6, 0, 2.6, 0, 0, 1.3, 0, 0)
 
-[node name="AuraFervor" type="OmniLight3D" parent="."]
+[node name="AuraFervor" type="OmniLight3D" parent="." unique_id=1583869565]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.3, 1.3, 0.4)
 light_color = Color(0.85, 0.64, 0.25, 1)
-light_energy = 1.0
 shadow_enabled = true
 omni_range = 4.5
 omni_attenuation = 2.0
 script = ExtResource("1_lparp")
-energia_base = 1.0
-amplitud = 0.3
-velocidad = 4.0
-semilla = 7
 
-[node name="LuzFervor" type="OmniLight3D" parent="."]
+[node name="LuzFervor" type="OmniLight3D" parent="." unique_id=13140900]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.6, -1.4)
 light_color = Color(0.35, 0.12, 0.14, 1)
-light_energy = 1.0
-omni_range = 5.0
 omni_attenuation = 2.0
 
-[node name="Disparador" type="Area3D" parent="."]
+[node name="Disparador" type="Area3D" parent="." unique_id=944647561]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.3, 0.5, 0)
 collision_mask = 8
 script = ExtResource("4_disp")
-que_representa = "usar una Plegaria"
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Disparador"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Disparador" unique_id=1205735990]
 shape = SubResource("DisparadorForma")
 
-[node name="LuzEvento" type="OmniLight3D" parent="."]
+[node name="LuzEvento" type="OmniLight3D" parent="." unique_id=389475879]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.3, 2, 0.4)
 light_color = Color(0.95, 0.76, 0.32, 1)
 light_energy = 0.0
 omni_range = 4.0
 omni_attenuation = 2.0
 
-[node name="SistemaEventos" type="Node" parent="." node_paths=PackedStringArray("luz_evento", "luz_variable")]
+[node name="SistemaEventos" type="Node" parent="." unique_id=137810789 node_paths=PackedStringArray("luz_evento", "luz_variable")]
 script = ExtResource("5_seve")
 luz_evento = NodePath("../LuzEvento")
-pico_destello = 5.0
-k_destello = 3.0
 luz_variable = NodePath("../LuzFervor")
 color_bajo = Color(0.35, 0.12, 0.14, 1)
 color_alto = Color(0.95, 0.76, 0.32, 1)
-k_variable = 4.0
 
-[node name="CamaraZonaB" type="Camera3D" parent="."]
+[node name="CamaraZonaB" type="Camera3D" parent="." unique_id=136726081]
 transform = Transform3D(1, 0, 0, 0, 0.988, 0.154, 0, -0.154, 0.988, 0, 2.3, 12)
-current = true
 projection = 1
+current = true
 size = 7.5

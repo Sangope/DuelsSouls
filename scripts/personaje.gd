@@ -9,7 +9,7 @@ const RAPIDEZ_MAX = [0.0, 3.5, 3.5, 0.0] # rapidez máxima en m/s, en el orden d
 @export var speed_atras: float = 2.4
 @export var tiempo_arranque: float = 0.2
 @export var gravedad: float = 28.0
-@export var altura_salto: float = 1.4
+@export var altura_salto: float = 1.6
 @export var limite_x_min: float = -13.5
 @export var limite_x_max: float = 13.5
 @export var rival: Node3D
@@ -19,6 +19,8 @@ const RAPIDEZ_MAX = [0.0, 3.5, 3.5, 0.0] # rapidez máxima en m/s, en el orden d
 @export var accion_derecha: String = ""
 @export var accion_saltar: String = ""
 @export var accion_pocion: String = ""
+
+var velocidad_accion: float = 1.0
 
 @onready var anim: AnimationPlayer = $Modelo/AnimationPlayer
 
@@ -136,17 +138,37 @@ func _physics_process(delta):
 func elegir_estado():
 	if not is_on_floor():
 		return Estado.AIRE
-	if Input.is_action_pressed(accion_pocion):
+	if accion == "pick-up":
 		return Estado.CURANDO
+	if accion != "":
+		return Estado.QUIETO
+	if Input.is_action_pressed(accion_pocion):
+		var poc = get_node_or_null("Pocion")
+		if poc == null or poc.get("estado") == 1 or (poc.get("estado") == 0 and int(poc.get("pociones")) > 0):
+			return Estado.CURANDO
 	var rapidez = absf(velocity.x)
 	if rapidez < 0.1:
 		return Estado.QUIETO
 	return Estado.CAMINAR
 
 
+func reproducir_accion(nombre: String, velocidad: float = 1.0) -> void:
+	accion = nombre
+	velocidad_accion = velocidad
+	if anim and anim.has_animation(nombre):
+		anim.speed_scale = velocidad
+		anim.play(nombre)
+		anim.seek(0.0, true)
+
+
+func terminar_accion() -> void:
+	accion = ""
+	velocidad_accion = 1.0
+
+
 func animar():
 	if accion != "":
-		anim.speed_scale = 1.0
+		anim.speed_scale = velocidad_accion
 		if anim.has_animation(accion):
 			anim.play(accion)
 		elif anim.has_animation("attack"):
