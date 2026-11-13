@@ -47,7 +47,7 @@ func _al_cambiar_vida(_nueva_vida: int) -> void:
 func _imprimir_vidas_consola() -> void:
 	var v1: int = int(_salud_p1.get("vida")) if _salud_p1 else 0
 	var v2: int = int(_salud_p2.get("vida")) if _salud_p2 else 0
-	print("Vida -> J1 Paladín: %d | J2 Vampiro: %d" % [v1, v2])
+	print("Vida -> Jugador 1: %d | Jugador 2: %d" % [v1, v2])
 
 
 func _actualizar_tiempo() -> void:

@@ -26,7 +26,7 @@ func _ready():
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	add_to_group("partida")
 	tiempo = tiempo_limite
-	print("intento ", intentos, " · mejor tiempo ", snappedf(mejor, 0.01), " · rondas ", rondas_ganadas, " · fervor ", fervor)
+	print("=== Combate iniciado (Intento %d) ===" % intentos)
 
 
 func _physics_process(delta):
@@ -46,14 +46,14 @@ func resolver_tiempo():
 	var salud = pj.get_node_or_null("Salud") if pj != null else null
 	if salud != null and rival != null and "vida" in rival and salud.vida != rival.vida:
 		if salud.vida > rival.vida:
-			terminar(Estado.GANO, "más vida al acabar el tiempo")
+			declarar_ganador(1, "por más vida al acabar el tiempo")
 		else:
-			perder("menos vida al acabar el tiempo")
+			declarar_ganador(2, "por más vida al acabar el tiempo")
 		return
 	if gana_con_tiempo:
-		ganar()
+		declarar_ganador(1, "sobrevivió el tiempo límite")
 	else:
-		perder("se acabó el tiempo")
+		terminar(Estado.PERDIO, "Empate al acabarse el tiempo (misma vida)")
 
 
 # La llaman los objetivos del juego: no saben qué pasa después.
@@ -66,8 +66,17 @@ func avisar_meta():
 		ganar()
 
 
+func declarar_ganador(ganador_id: int, motivo: String = "por KO"):
+	var estado_final = Estado.GANO if ganador_id == 1 else Estado.PERDIO
+	terminar(estado_final, "GANÓ EL JUGADOR %d (%s)" % [ganador_id, motivo])
+
+
 func ganar():
-	terminar(Estado.GANO, "ganó")
+	declarar_ganador(1, "victoria")
+
+
+func ganar_por_ko(motivo: String = "por KO"):
+	declarar_ganador(1, motivo)
 
 
 func perder(motivo):
@@ -79,8 +88,7 @@ func terminar(nuevo, motivo):
 	if estado != Estado.JUGANDO:
 		return
 	estado = nuevo
-	print("fin: ", Estado.keys()[estado], " cuadro ",
-		Engine.get_physics_frames(), " (", motivo, ")")
+	print("=== FIN DEL COMBATE: %s ===" % motivo)
 	get_tree().paused = true
 	reloj = espera_reinicio
 	var usado = tiempo_limite - tiempo

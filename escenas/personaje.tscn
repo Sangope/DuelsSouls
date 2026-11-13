@@ -7,11 +7,12 @@
 [ext_resource type="Script" uid="uid://uhn120vpk6u1" path="res://scripts/combate.gd" id="5_combate"]
 
 [sub_resource type="CapsuleShape3D" id="CapsulaPaladin"]
-radius = 0.2
+radius = 0.5
 height = 1.75
 
 [node name="Personaje" type="CharacterBody3D" groups=["jugador", "luchador"]]
 collision_layer = 2
+collision_mask = 3
 axis_lock_linear_z = true
 script = ExtResource("1_pj")
 jugador_id = 1
@@ -41,17 +42,11 @@ curacion = 30
 script = ExtResource("5_combate")
 accion_ataque_1 = "p1_ataque_1"
 anim_ataque_1 = "attack"
-danio_1 = 18
+danio_1 = 20
 alcance_1 = 1.75
 duracion_1 = 0.55
 momento_golpe_1 = 0.22
 velocidad_anim_1 = 1.8
-es_bajo_1 = false
-accion_ataque_2 = "p1_ataque_2"
-anim_ataque_2 = "kick"
-danio_2 = 10
-alcance_2 = 1.5
-duracion_2 = 0.42
-momento_golpe_2 = 0.16
-velocidad_anim_2 = 1.5
-es_bajo_2 = true
+accion_cubrirse = "p1_cubrirse"
+anim_cubrirse = "block"
+velocidad_anim_cubrirse = 1.6

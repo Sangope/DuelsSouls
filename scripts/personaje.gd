@@ -1,7 +1,7 @@
 extends CharacterBody3D
 
-enum Estado { QUIETO, CAMINAR, AIRE, CURANDO }
-const RAPIDEZ_MAX = [0.0, 3.5, 3.5, 0.0] # rapidez máxima en m/s, en el orden del enum
+enum Estado { QUIETO, CAMINAR, AIRE, CURANDO, CUBRIENDO }
+const RAPIDEZ_MAX = [0.0, 3.5, 3.5, 0.0, 0.0] # rapidez máxima en m/s, en el orden del enum
 
 @export_group("Luchador")
 @export var jugador_id: int = 1
@@ -12,6 +12,7 @@ const RAPIDEZ_MAX = [0.0, 3.5, 3.5, 0.0] # rapidez máxima en m/s, en el orden d
 @export var altura_salto: float = 1.6
 @export var limite_x_min: float = -13.5
 @export var limite_x_max: float = 13.5
+@export var separacion_minima: float = 1.0
 @export var rival: Node3D
 
 @export_group("Controles")
@@ -31,6 +32,7 @@ var accion: String = ""             # animación de la acción; "" = ninguna
 var avance: float = 0.0            # la parte de la velocidad que dan las teclas
 var estado: Estado = Estado.QUIETO
 var rapidez_max: float = 0.0
+var _ultimo_movimiento: String = "quieto"
 
 # Propiedad para interoperabilidad con partida.gd y sistemas de combate
 var vida: int:
@@ -89,17 +91,25 @@ func _buscar_rival():
 		rival = get_parent().get_node_or_null("Personaje")
 
 
+func _nombre_jugador() -> String:
+	return "Jugador %d" % jugador_id
+
+
 func _physics_process(delta):
 	if rival == null or not is_instance_valid(rival):
 		_buscar_rival()
 
+	var curando = (accion == "pick-up")
+	var cubriendo = (accion == "block")
+	var muerto = (accion == "die")
+
 	if not is_on_floor():
 		velocity.y -= gravedad * delta
-	elif Input.is_action_just_pressed(accion_saltar):
+	elif not (curando or cubriendo or muerto) and Input.is_action_just_pressed(accion_saltar):
 		velocity.y = sqrt(2 * gravedad * altura_salto)
+		print("%s saltó" % _nombre_jugador())
 
 	var lado = Input.get_axis(accion_izquierda, accion_derecha)
-	var curando = is_on_floor() and Input.is_action_pressed(accion_pocion)
 
 	# Orientación: mirar SIEMPRE al contrincante (no depende de la tecla)
 	var hacia_rival_x = 1.0
@@ -114,26 +124,93 @@ func _physics_process(delta):
 		var se_mueve_al_frente = (sign(lado) == hacia_rival_x)
 		vel_tope = speed_frente if se_mueve_al_frente else speed_atras
 
-	var tope = 0.0 if curando else vel_tope
+	var tope = 0.0 if (curando or cubriendo or muerto) else vel_tope
 	var paso = vel_tope / tiempo_arranque * delta
 	avance = move_toward(avance, lado * tope * multiplicador, paso)
 	velocity.x = avance + empuje.x
 	velocity.z = 0.0
 
+	_limitar_velocidad_hacia_rival()
 	move_and_slide()
 	empuje = empuje.move_toward(Vector3.ZERO, 2.0 * delta)
+	_evitar_atravesar_rival()
 
 	# Limitar la posición X por código (clamp) por seguridad y asegurar Z = 0
 	global_position.x = clampf(global_position.x, limite_x_min, limite_x_max)
 	global_position.z = 0.0
 
-	var antes = estado
 	estado = elegir_estado()
 	rapidez_max = RAPIDEZ_MAX[estado]
-	if estado != antes:
-		print(name, ": estado ", Estado.keys()[estado], " · rapidez_max ", rapidez_max, " m/s")
+	_reportar_movimiento(hacia_rival_x)
 	animar()
 	_prueba()
+
+
+func _limitar_velocidad_hacia_rival():
+	if rival == null or not is_instance_valid(rival):
+		return
+	var dx: float = rival.global_position.x - global_position.x
+	var dy: float = absf(rival.global_position.y - global_position.y)
+	if dy < 1.65 and absf(dx) <= separacion_minima + 0.015:
+		var dir_rival: float = 1.0 if dx >= 0.0 else -1.0
+		if signf(velocity.x) == dir_rival:
+			velocity.x = 0.0
+		if signf(avance) == dir_rival:
+			avance = 0.0
+
+
+func _direccion_separacion_rival() -> float:
+	if rival == null or not is_instance_valid(rival):
+		return -1.0 if jugador_id == 1 else 1.0
+	var dx: float = global_position.x - rival.global_position.x
+	if absf(dx) > 0.01:
+		return 1.0 if dx > 0.0 else -1.0
+	if global_position.x > limite_x_max - 1.0:
+		return -1.0
+	if global_position.x < limite_x_min + 1.0:
+		return 1.0
+	return -1.0 if jugador_id == 1 else 1.0
+
+
+func _evitar_atravesar_rival():
+	if rival == null or not is_instance_valid(rival):
+		return
+
+	# Evitar quedar parado encima de la cabeza del contrincante al caer de un salto
+	for i in get_slide_collision_count():
+		var col := get_slide_collision(i)
+		if col.get_collider() == rival and col.get_normal().y > 0.45:
+			var dir_escape: float = _direccion_separacion_rival()
+			empuje.x = dir_escape * 3.0
+			velocity.x = empuje.x
+			global_position.x = clampf(global_position.x + dir_escape * 0.06, limite_x_min, limite_x_max)
+			break
+
+	# Separación mínima horizontal garantizada mientras coincidan en altura
+	var dx_act: float = global_position.x - rival.global_position.x
+	var dy_act: float = absf(global_position.y - rival.global_position.y)
+	if dy_act < 1.65 and absf(dx_act) < separacion_minima:
+		var falta: float = separacion_minima - absf(dx_act)
+		var dir_sep: float = _direccion_separacion_rival()
+		global_position.x = clampf(global_position.x + dir_sep * (falta * 0.5 + 0.002), limite_x_min, limite_x_max)
+		rival.global_position.x = clampf(rival.global_position.x - dir_sep * (falta * 0.5 + 0.002), limite_x_min, limite_x_max)
+		var dist_post: float = absf(global_position.x - rival.global_position.x)
+		if dist_post < separacion_minima:
+			var dir_post: float = 1.0 if global_position.x >= rival.global_position.x else -1.0
+			if absf(global_position.x) > absf(rival.global_position.x):
+				rival.global_position.x = clampf(global_position.x - dir_post * separacion_minima, limite_x_min, limite_x_max)
+			else:
+				global_position.x = clampf(rival.global_position.x + dir_post * separacion_minima, limite_x_min, limite_x_max)
+
+
+func _reportar_movimiento(hacia_rival_x: float) -> void:
+	if estado == Estado.CAMINAR and absf(velocity.x) >= 0.15:
+		var mov := "avanza" if signf(velocity.x) == signf(hacia_rival_x) else "retrocede"
+		if mov != _ultimo_movimiento:
+			_ultimo_movimiento = mov
+			print("%s %s" % [_nombre_jugador(), mov])
+	elif estado != Estado.CAMINAR:
+		_ultimo_movimiento = "quieto"
 
 
 func elegir_estado():
@@ -141,6 +218,8 @@ func elegir_estado():
 		return Estado.AIRE
 	if accion == "pick-up":
 		return Estado.CURANDO
+	if accion == "block":
+		return Estado.CUBRIENDO
 	if accion != "":
 		return Estado.QUIETO
 	if Input.is_action_pressed(accion_pocion):
@@ -171,9 +250,11 @@ func animar():
 	if accion != "":
 		anim.speed_scale = velocidad_accion
 		if anim.has_animation(accion):
-			anim.play(accion)
+			if anim.current_animation != accion:
+				anim.play(accion)
 		elif anim.has_animation("attack"):
-			anim.play("attack")
+			if anim.current_animation != "attack":
+				anim.play("attack")
 		return
 	match estado:
 		Estado.QUIETO:

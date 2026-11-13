@@ -2,28 +2,23 @@ class_name Combate
 extends Node
 
 ## Sistema de combate cuerpo a cuerpo 2.5D para cada luchador.
-## Maneja dos ataques independientes (principal y patada baja), aturdimiento
-## por impacto, muerte y sincronizacion de controles segun el jugador.
+## Maneja el ataque principal, defensa (cubrirse), aturdimiento por impacto,
+## muerte, narracion por consola y sincronizacion de controles segun el jugador.
 
 @export_group("Ataque Principal")
 @export var accion_ataque_1: String = "p1_ataque_1"
 @export var anim_ataque_1: String = "attack"
-@export var danio_1: int = 18
+@export var danio_1: int = 20
 @export var alcance_1: float = 1.75
 @export var duracion_1: float = 0.55
 @export var momento_golpe_1: float = 0.22
 @export var velocidad_anim_1: float = 1.8
-@export var es_bajo_1: bool = false
 
-@export_group("Patada Baja")
-@export var accion_ataque_2: String = "p1_ataque_2"
-@export var anim_ataque_2: String = "kick"
-@export var danio_2: int = 10
-@export var alcance_2: float = 1.50
-@export var duracion_2: float = 0.42
-@export var momento_golpe_2: float = 0.16
-@export var velocidad_anim_2: float = 1.5
-@export var es_bajo_2: bool = true
+@export_group("Defensa")
+@export var accion_cubrirse: String = "p1_cubrirse"
+@export var anim_cubrirse: String = "block"
+@export var velocidad_anim_cubrirse: float = 1.6
+@export var empuje_bloqueo: float = 0.45
 
 @export_group("Tiempos")
 @export var enfriamiento: float = 0.15
@@ -32,6 +27,7 @@ extends Node
 var _pj: Node = null
 var _salud: Node = null
 var _atacando: bool = false
+var _cubriendose: bool = false
 var _aturdido: bool = false
 var _muerto: bool = false
 var _tiempo: float = 0.0
@@ -45,7 +41,6 @@ var _danio_actual: int = 0
 var _alcance_actual: float = 1.5
 var _duracion_actual: float = 0.5
 var _momento_actual: float = 0.2
-var _es_bajo_actual: bool = false
 
 
 func _ready() -> void:
@@ -66,13 +61,13 @@ func _sincronizar_controles() -> void:
 	if es_p2:
 		if accion_ataque_1 == "p1_ataque_1" or accion_ataque_1 == "":
 			accion_ataque_1 = "p2_ataque_1"
-		if accion_ataque_2 == "p1_ataque_2" or accion_ataque_2 == "":
-			accion_ataque_2 = "p2_ataque_2"
+		if accion_cubrirse == "p1_cubrirse" or accion_cubrirse == "":
+			accion_cubrirse = "p2_cubrirse"
 	else:
 		if accion_ataque_1 == "":
 			accion_ataque_1 = "p1_ataque_1"
-		if accion_ataque_2 == "":
-			accion_ataque_2 = "p1_ataque_2"
+		if accion_cubrirse == "":
+			accion_cubrirse = "p1_cubrirse"
 
 	# Sincronizar tecla de pocion con el jugador luego de personaje._ready()
 	var poc: Node = _pj.get_node_or_null("Pocion")
@@ -84,14 +79,31 @@ func esta_atacando() -> bool:
 	return _atacando
 
 
+func esta_cubriendose() -> bool:
+	return _cubriendose
+
+
+func _etiqueta_jugador(nodo: Node) -> String:
+	if nodo == null:
+		return "Luchador"
+	var jid: Variant = nodo.get("jugador_id")
+	if typeof(jid) == TYPE_INT:
+		return "Jugador %d" % jid
+	return str(nodo.name)
+
+
 func _physics_process(delta: float) -> void:
 	if _enfriamiento_restante > 0.0:
 		_enfriamiento_restante = maxf(0.0, _enfriamiento_restante - delta)
 
 	if _muerto:
+		if _cubriendose:
+			_dejar_de_cubrirse(false)
 		return
 
 	if _aturdido:
+		if _cubriendose:
+			_dejar_de_cubrirse(false)
 		_tiempo_aturdido -= delta
 		if _tiempo_aturdido <= 0.0:
 			_aturdido = false
@@ -101,6 +113,10 @@ func _physics_process(delta: float) -> void:
 
 	if _atacando:
 		_actualizar_ataque(delta)
+		return
+
+	_actualizar_bloqueo()
+	if _cubriendose:
 		return
 
 	if not _puede_atacar():
@@ -113,23 +129,56 @@ func _physics_process(delta: float) -> void:
 			alcance_1,
 			duracion_1,
 			momento_golpe_1,
-			velocidad_anim_1,
-			es_bajo_1
+			velocidad_anim_1
 		)
-	elif InputMap.has_action(accion_ataque_2) and Input.is_action_just_pressed(accion_ataque_2):
-		_iniciar_ataque(
-			anim_ataque_2,
-			danio_2,
-			alcance_2,
-			duracion_2,
-			momento_golpe_2,
-			velocidad_anim_2,
-			es_bajo_2
-		)
+
+
+func _actualizar_bloqueo() -> void:
+	var quiere_cubrirse: bool = (
+		_puede_cubrirse()
+		and InputMap.has_action(accion_cubrirse)
+		and Input.is_action_pressed(accion_cubrirse)
+	)
+	if quiere_cubrirse:
+		if not _cubriendose:
+			_empezar_a_cubrirse()
+	elif _cubriendose:
+		_dejar_de_cubrirse(true)
+
+
+func _puede_cubrirse() -> bool:
+	if _pj == null:
+		return false
+	if _salud and int(_salud.get("vida")) <= 0:
+		return false
+	if _pj.has_method("is_on_floor") and not _pj.call("is_on_floor"):
+		return false
+	var accion_pj: Variant = _pj.get("accion")
+	if typeof(accion_pj) == TYPE_STRING and accion_pj != "" and accion_pj != anim_cubrirse:
+		return false
+	return true
+
+
+func _empezar_a_cubrirse() -> void:
+	_cubriendose = true
+	_pj.set("multiplicador", 0.0)
+	_asignar_accion_pj(anim_cubrirse, velocidad_anim_cubrirse)
+	print("%s se está cubriendo" % _etiqueta_jugador(_pj))
+
+
+func _dejar_de_cubrirse(reportar: bool) -> void:
+	_cubriendose = false
+	if _pj:
+		if _pj.get("accion") == anim_cubrirse:
+			_limpiar_accion_pj()
+		if _pj.get("accion") != "pick-up":
+			_pj.set("multiplicador", 1.0)
+		if reportar:
+			print("%s dejó de cubrirse" % _etiqueta_jugador(_pj))
 
 
 func _puede_atacar() -> bool:
-	if _pj == null or _enfriamiento_restante > 0.0:
+	if _pj == null or _enfriamiento_restante > 0.0 or _cubriendose:
 		return false
 	if _salud and int(_salud.get("vida")) <= 0:
 		return false
@@ -145,8 +194,7 @@ func _iniciar_ataque(
 	alcance: float,
 	duracion: float,
 	momento: float,
-	velocidad: float,
-	es_bajo: bool
+	velocidad: float
 ) -> void:
 	_atacando = true
 	_tiempo = 0.0
@@ -156,8 +204,9 @@ func _iniciar_ataque(
 	_alcance_actual = alcance
 	_duracion_actual = duracion
 	_momento_actual = momento
-	_es_bajo_actual = es_bajo
 	_asignar_accion_pj(nombre_anim, velocidad)
+	var tipo_golpe: String = "golpe de puño" if nombre_anim == "punch" else "golpe con espada"
+	print("%s lanzó %s" % [_etiqueta_jugador(_pj), tipo_golpe])
 
 
 func _actualizar_ataque(delta: float) -> void:
@@ -194,23 +243,42 @@ func _aplicar_golpe() -> void:
 	var mirando_x: float = -_pj.global_basis.z.x
 	var distancia_x: float = absf(dx)
 	if distancia_x > _alcance_actual:
+		print("%s falló el golpe (fuera de alcance)" % _etiqueta_jugador(_pj))
 		return
 
 	if distancia_x > 0.35 and signf(dx) != signf(mirando_x):
+		print("%s falló el golpe (fuera de alcance)" % _etiqueta_jugador(_pj))
 		return
 
 	var dy: float = objetivo.global_position.y - _pj.global_position.y
-	if _es_bajo_actual:
-		if dy < -0.35 or dy > 0.60:
-			return
-	else:
-		if dy < -0.55 or dy > 1.45:
-			return
+	if dy < -0.55 or dy > 1.45:
+		print("%s falló el golpe (%s lo esquivó en el aire)" % [_etiqueta_jugador(_pj), _etiqueta_jugador(objetivo)])
+		return
+
+	var dir_empuje: float = signf(dx) if absf(dx) > 0.05 else signf(mirando_x)
+
+	# Si el rival está cubriéndose de frente, bloquea todo el daño
+	var c_obj: Node = objetivo.get_node_or_null("Combate")
+	var mirando_obj: float = -objetivo.global_basis.z.x
+	var bloquea_de_frente: bool = (absf(dx) <= 0.35) or (signf(-dx) == signf(mirando_obj))
+	if c_obj and c_obj.has_method("esta_cubriendose") and c_obj.call("esta_cubriendose") and bloquea_de_frente:
+		objetivo.set("empuje", Vector3(dir_empuje * empuje_bloqueo, 0.0, 0.0))
+		print("%s dio golpe -> %s se cubrió (0 de daño)" % [_etiqueta_jugador(_pj), _etiqueta_jugador(objetivo)])
+		return
+
+	var vida_antes: int = int(s_obj.get("vida")) if s_obj else 0
+	var puede_recibir: bool = true
+	if s_obj and s_obj.has_method("puede_recibir_golpe"):
+		puede_recibir = bool(s_obj.call("puede_recibir_golpe"))
+	if puede_recibir and s_obj:
+		var dano_aplicado: int = mini(_danio_actual, vida_antes)
+		print("%s dio golpe -> %s -%d de vida" % [_etiqueta_jugador(_pj), _etiqueta_jugador(objetivo), dano_aplicado])
+	elif s_obj:
+		print("%s atacó a %s, pero aún está invulnerable" % [_etiqueta_jugador(_pj), _etiqueta_jugador(objetivo)])
 
 	if objetivo.has_method("recibir_golpe"):
 		objetivo.call("recibir_golpe", _danio_actual)
-	var dir_empuje: float = signf(dx) if absf(dx) > 0.05 else signf(mirando_x)
-	objetivo.set("empuje", Vector3(dir_empuje * (0.28 if _es_bajo_actual else 0.35), 0.0, 0.0))
+	objetivo.set("empuje", Vector3(dir_empuje * 0.45, 0.0, 0.0))
 
 
 func _al_cambiar_vida(nueva_vida: int) -> void:
@@ -220,6 +288,9 @@ func _al_cambiar_vida(nueva_vida: int) -> void:
 	if nueva_vida > 0 and _muerto:
 		_muerto = false
 		_aturdido = false
+		_cubriendose = false
+		if _pj:
+			_pj.set("multiplicador", 1.0)
 		_limpiar_accion_pj()
 		return
 
@@ -227,9 +298,13 @@ func _al_cambiar_vida(nueva_vida: int) -> void:
 		return
 
 	_atacando = false
+	if _cubriendose:
+		_dejar_de_cubrirse(false)
+
 	if nueva_vida <= 0:
 		_muerto = true
 		_aturdido = false
+		_pj.set("multiplicador", 0.0)
 		_asignar_accion_pj("die", 1.0)
 	else:
 		_aturdido = true

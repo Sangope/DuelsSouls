@@ -8,12 +8,12 @@ Estructura del proyecto
 - escenas/rival.tscn         Escena independiente de J2 (Vampiro).
 - escenas/hud.tscn           HUD minimalista con temporizador en pantalla; la vida se muestra en consola.
 - scripts/personaje.gd       Movimiento 2.5D, salto, orientación hacia el rival y máquina de estados.
-- scripts/combate.gd         Sistema de combate cuerpo a cuerpo (2 ataques por luchador, alcance, impacto y KO).
+- scripts/combate.gd         Sistema de combate cuerpo a cuerpo (ataque principal, cubrirse, impacto, KO y narración en consola).
 - scripts/salud.gd           Salud, curación e invulnerabilidad temporal tras impacto.
 - scripts/pocion.gd          Curación con pociones limitadas y recarga.
 - scripts/camara_sigue.gd    Cámara 2.5D tipo Mortal Kombat centrada entre ambos luchadores.
 - scripts/partida.gd         Temporizador y estado de partida.
-- scripts/hud.gd             Actualización del HUD de ambos jugadores.
+- scripts/hud.gd             Temporizador en pantalla y reporte de vidas en consola.
 - escenario/                 Escenario 3D de ruinas estilo Blasphemous/Mortal Kombat + shader pixel art.
 - personaje/                 Modelos .glb y texturas de Paladín (J1) y Vampiro (J2).
 - talleres_anteriores/       Escenas y prototipos de talleres anteriores archivados.
@@ -23,13 +23,13 @@ Controles
 Jugador 1 — Paladín (WASD + J/K/L):
 - A / D           : Mover izquierda / derecha
 - W o Espacio     : Saltar
-- J               : Ataque principal con espada (18 de daño)
-- K               : Patada baja (10 de daño; esquivable saltando)
+- J               : Ataque principal con espada (20 de daño)
+- K (mantener)    : Cubrirse con escudo (bloquea ataques frontales)
 - L               : Poción de curación (+30 HP)
 
 Jugador 2 — Vampiro (Flechas + 1/2/3):
 - Flecha Izq/Der  : Mover izquierda / derecha
 - Flecha Arriba   : Saltar
 - 1 (o Numpad 1)  : Golpe de puño (15 de daño)
-- 2 (o Numpad 2)  : Patada baja (10 de daño; esquivable saltando)
+- 2 (o Numpad 2)  : Cubrirse (mantener para bloquear ataques frontales)
 - 3 (o Numpad 3)  : Poción de curación (+30 HP)
