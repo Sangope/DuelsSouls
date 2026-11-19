@@ -11,7 +11,7 @@ radius = 0.1694336
 height = 1.5498047
 
 [sub_resource type="BoxShape3D" id="HitboxEspadaShape"]
-size = Vector3(0.32, 0.32, 0.95)
+size = Vector3(0.6, 1.25, 1.35)
 
 [node name="Personaje" type="CharacterBody3D" unique_id=1408392876 groups=["jugador", "luchador"]]
 collision_layer = 2
@@ -44,10 +44,9 @@ script = ExtResource("5_combate")
 [node name="HitboxAtaque" type="Area3D" parent="." unique_id=881122334]
 collision_layer = 0
 collision_mask = 2
-monitoring = true
 monitorable = false
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="HitboxAtaque" unique_id=881122335]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.95, -0.95)
 shape = SubResource("HitboxEspadaShape")
 debug_color = Color(0.95, 0.18, 0.22, 0.45)
