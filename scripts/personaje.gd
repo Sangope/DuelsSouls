@@ -36,6 +36,7 @@ var rapidez_max: float = 0.0
 var _ultimo_movimiento: String = "quieto"
 var _cruce_aereo: bool = false
 var _dir_cruce: float = 0.0
+var _accion_congelada: bool = false
 
 # Propiedad para interoperabilidad con partida.gd y sistemas de combate
 var vida: int:
@@ -288,6 +289,7 @@ func elegir_estado():
 func reproducir_accion(nombre: String, velocidad: float = 1.0) -> void:
 	accion = nombre
 	velocidad_accion = velocidad
+	_accion_congelada = false
 	if anim and anim.has_animation(nombre):
 		anim.speed_scale = velocidad
 		anim.play(nombre)
@@ -297,17 +299,41 @@ func reproducir_accion(nombre: String, velocidad: float = 1.0) -> void:
 func terminar_accion() -> void:
 	accion = ""
 	velocidad_accion = 1.0
+	_accion_congelada = false
 
 
 func animar():
 	if accion != "":
+		var nombre_anim: String = accion if anim.has_animation(accion) else ("attack" if anim.has_animation("attack") else "")
+		if nombre_anim == "":
+			return
+		if nombre_anim == "block" or nombre_anim == "die":
+			var dur_anim: float = anim.get_animation(nombre_anim).length
+			var frame_final: float = maxf(0.0, dur_anim - 0.02)
+			if _accion_congelada:
+				if anim.current_animation != nombre_anim:
+					anim.play(nombre_anim)
+				anim.seek(frame_final, true)
+				anim.pause()
+				return
+			if anim.current_animation == nombre_anim and anim.current_animation_position >= dur_anim - 0.05:
+				_accion_congelada = true
+				anim.seek(frame_final, true)
+				anim.pause()
+				return
+			if anim.current_animation != nombre_anim:
+				# Si la animacion ya habia terminado este cuadro, clavarla en el ultimo frame
+				_accion_congelada = true
+				anim.play(nombre_anim)
+				anim.seek(frame_final, true)
+				anim.pause()
+				return
+			anim.speed_scale = velocidad_accion
+			return
+
 		anim.speed_scale = velocidad_accion
-		if anim.has_animation(accion):
-			if anim.current_animation != accion:
-				anim.play(accion)
-		elif anim.has_animation("attack"):
-			if anim.current_animation != "attack":
-				anim.play("attack")
+		if anim.current_animation != nombre_anim:
+			anim.play(nombre_anim)
 		return
 	match estado:
 		Estado.QUIETO:
