@@ -89,7 +89,8 @@ func terminar(nuevo, motivo):
 		return
 	estado = nuevo
 	print("=== FIN DEL COMBATE: %s ===" % motivo)
-	get_tree().paused = true
+	# No pausar el SceneTree para que el golpe final termine su recorrido de espada,
+	# salgan las particulas de sangre y el derrotado reproduzca su animacion "die".
 	reloj = espera_reinicio
 	var usado = tiempo_limite - tiempo
 	if estado == Estado.GANO:

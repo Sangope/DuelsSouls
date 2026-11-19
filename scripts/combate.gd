@@ -2,17 +2,18 @@ class_name Combate
 extends Node
 
 ## Sistema de combate cuerpo a cuerpo 2.5D para cada luchador.
-## Maneja el ataque principal, defensa, aturdimiento por impacto,
-## muerte, narracion por consola y sincronizacion de controles segun el jugador.
+## La HitboxAtaque (Area3D) sigue fisicamente el hueso 3D de la espada (Paladin)
+## o del puno (Vampiro) en cada cuadro de la animacion y aplica el dano
+## exactamente cuando la hoja/puno baja e impacta contra el cuerpo del rival.
 
 @export_group("Ataque Principal")
 @export var accion_ataque_1: String = "p1_ataque_1"
 @export var anim_ataque_1: String = "attack"
 @export var danio_1: int = 20
 @export var alcance_1: float = 1.75
-@export var duracion_1: float = 0.55
-@export var momento_golpe_1: float = 0.22
-@export var velocidad_anim_1: float = 1.8
+@export var duracion_1: float = 0.68
+@export var momento_golpe_1: float = 0.31
+@export var velocidad_anim_1: float = 1.85
 
 @export_group("Defensa")
 @export var accion_cubrirse: String = "p1_cubrirse"
@@ -38,11 +39,15 @@ var _vida_anterior: int = 100
 
 var _anim_actual: String = ""
 var _danio_actual: int = 0
-var _alcance_actual: float = 1.5
-var _duracion_actual: float = 0.5
-var _momento_actual: float = 0.2
+var _alcance_actual: float = 1.75
+var _duracion_actual: float = 0.68
+var _momento_actual: float = 0.31
+
 var _hitbox: Area3D = null
 var _hitbox_col: CollisionShape3D = null
+var _skeleton: Skeleton3D = null
+var _idx_mano: int = -1
+var _idx_espada: int = -1
 
 
 func _ready() -> void:
@@ -54,13 +59,64 @@ func _ready() -> void:
 	if _hitbox:
 		_hitbox_col = _hitbox.get_node_or_null("CollisionShape3D")
 		if _hitbox_col:
-			# En reposo y en el frame 0 la hitbox empieza APAGADA
+			# En reposo y en el frame 0 la hitbox de la espada/puno empieza APAGADA
 			_hitbox_col.disabled = true
+	_configurar_seguimiento_arma()
 	_salud = _pj.get_node_or_null("Salud")
 	if _salud:
 		_vida_anterior = int(_salud.get("vida"))
 		if _salud.has_signal("cambio"):
 			_salud.connect("cambio", Callable(self, "_al_cambiar_vida"))
+
+
+func _configurar_seguimiento_arma() -> void:
+	var modelo: Node = _pj.get_node_or_null("Modelo")
+	if modelo == null:
+		return
+	_skeleton = _buscar_skeleton(modelo)
+	if _skeleton:
+		_idx_mano = _skeleton.find_bone("mixamorig_RightHand")
+		_idx_espada = _skeleton.find_bone("mixamorig_Sword_joint")
+		_actualizar_posicion_hitbox_arma()
+
+
+func _buscar_skeleton(nodo: Node) -> Skeleton3D:
+	if nodo is Skeleton3D:
+		return nodo
+	for hijo in nodo.get_children():
+		var encontrado := _buscar_skeleton(hijo)
+		if encontrado:
+			return encontrado
+	return null
+
+
+func _actualizar_posicion_hitbox_arma() -> void:
+	if _hitbox == null or _skeleton == null or not is_inside_tree() or not _skeleton.is_inside_tree():
+		return
+
+	if _idx_espada >= 0 and _idx_mano >= 0:
+		# Paladin: la Hitbox sigue la hoja 3D de la espada desde la empuñadura hasta la punta
+		var pose_mano := _skeleton.get_bone_global_pose(_idx_mano)
+		var pose_espada := _skeleton.get_bone_global_pose(_idx_espada)
+		var pos_mano: Vector3 = _skeleton.global_transform * pose_mano.origin
+		var pos_espada: Vector3 = _skeleton.global_transform * pose_espada.origin
+		var dir_hoja: Vector3 = pos_espada - pos_mano
+		if dir_hoja.length_squared() > 0.0001:
+			dir_hoja = dir_hoja.normalized()
+		else:
+			dir_hoja = (-_pj.global_basis.z).normalized()
+		var centro_hoja: Vector3 = pos_mano + dir_hoja * 0.48
+		_hitbox.global_position = centro_hoja
+		var arriba := Vector3.UP if absf(dir_hoja.dot(Vector3.UP)) < 0.92 else Vector3.RIGHT
+		_hitbox.look_at(centro_hoja + dir_hoja, arriba)
+	elif _idx_mano >= 0:
+		# Vampiro: la Hitbox sigue el hueso 3D del puno derecho
+		var pose_mano := _skeleton.get_bone_global_pose(_idx_mano)
+		var pos_mano: Vector3 = _skeleton.global_transform * pose_mano.origin
+		var frente: Vector3 = (-_pj.global_basis.z).normalized()
+		var centro_puno: Vector3 = pos_mano + frente * 0.24
+		_hitbox.global_position = centro_puno
+		_hitbox.look_at(centro_puno + frente, Vector3.UP)
 
 
 func _sincronizar_controles() -> void:
@@ -77,7 +133,6 @@ func _sincronizar_controles() -> void:
 		if accion_cubrirse == "":
 			accion_cubrirse = "p1_cubrirse"
 
-	# Sincronizar tecla de pocion con el jugador luego de personaje._ready()
 	var poc: Node = _pj.get_node_or_null("Pocion")
 	if poc:
 		poc.set("tecla", "p2_pocion" if es_p2 else "p1_pocion")
@@ -101,6 +156,8 @@ func _etiqueta_jugador(nodo: Node) -> String:
 
 
 func _physics_process(delta: float) -> void:
+	_actualizar_posicion_hitbox_arma()
+
 	if _enfriamiento_restante > 0.0:
 		_enfriamiento_restante = maxf(0.0, _enfriamiento_restante - delta)
 
@@ -204,8 +261,8 @@ func _iniciar_ataque(
 	momento: float,
 	velocidad: float
 ) -> void:
-	# FASE 1 (Frame 0 - Preparacion / Aviso):
-	# Inicia la animacion pero la Hitbox sigue APAGADA (no hace dano en el frame 0).
+	# FASE 1 (Frame 0 - Preparacion):
+	# El personaje levanta la espada o arma el puno, pero la Hitbox sigue APAGADA.
 	_atacando = true
 	_tiempo = 0.0
 	_golpe_aplicado = false
@@ -230,19 +287,20 @@ func _actualizar_ataque(delta: float) -> void:
 
 	_tiempo += delta
 
-	# FASE 2 (Cuadros Activos / Impacto):
-	# Solo cuando el reloj alcanza 'momento_golpe_1' (cuando el brazo/espada ya se estiro),
-	# se ENCIENDE la Hitbox y se comprueba donde esta el rival AHORA.
+	# FASE 2 (Tajo / Golpe Activo):
+	# Cuando la espada baja hacia el frente (momento_golpe_1 = 0.31 s en Paladin,
+	# que corresponde a ~0.58 s de la animacion cuando la hoja ya bajo frente al rival),
+	# se ENCIENDE la Hitbox que viaja con la espada y aplica el impacto.
 	if not _golpe_aplicado and _tiempo >= _momento_actual:
 		_golpe_aplicado = true
 		if _hitbox_col:
 			_hitbox_col.disabled = false
+		_actualizar_posicion_hitbox_arma()
 		_aplicar_golpe()
 
 	# FASE 3 (Recuperacion):
-	# Pasada la ventana activa del impacto (+0.12 s), se vuelve a APAGAR la Hitbox
-	# mientras el personaje recoge el brazo.
-	if _golpe_aplicado and _hitbox_col and not _hitbox_col.disabled and _tiempo >= _momento_actual + 0.12:
+	# Terminado el tajo activo (+0.14 s), se vuelve a APAGAR la Hitbox de la espada/puno.
+	if _golpe_aplicado and _hitbox_col and not _hitbox_col.disabled and _tiempo >= _momento_actual + 0.14:
 		_hitbox_col.disabled = true
 
 	if _tiempo >= _duracion_actual:
@@ -261,17 +319,10 @@ func _terminar_ataque() -> void:
 func _obtener_alcance_hitbox() -> float:
 	if _hitbox_col and _hitbox_col.shape is BoxShape3D:
 		var box := _hitbox_col.shape as BoxShape3D
-		var offset_z: float = absf(_hitbox.position.z + _hitbox_col.position.z) if _hitbox else absf(_hitbox_col.position.z)
-		return offset_z + box.size.z * 0.5
+		# Si el usuario escala el largo (size.z) de la caja en el editor, escala proporcionalmente el alcance
+		var base_z: float = 0.95 if _idx_espada >= 0 else 0.65
+		return _alcance_actual * (box.size.z / base_z)
 	return _alcance_actual
-
-
-func _obtener_altura_max_hitbox() -> float:
-	if _hitbox_col and _hitbox_col.shape is BoxShape3D:
-		var box := _hitbox_col.shape as BoxShape3D
-		var offset_y: float = (_hitbox.position.y + _hitbox_col.position.y) if _hitbox else _hitbox_col.position.y
-		return offset_y + box.size.y * 0.5 - 0.175
-	return 1.45
 
 
 func _aplicar_golpe() -> void:
@@ -287,7 +338,13 @@ func _aplicar_golpe() -> void:
 	var mirando_x: float = -_pj.global_basis.z.x
 	var distancia_x: float = absf(dx)
 	var alcance_efectivo: float = _obtener_alcance_hitbox()
-	if distancia_x > alcance_efectivo:
+
+	# Comprobar superposicion fisica de la Hitbox del arma o alcance de la hoja
+	var toca_por_area: bool = false
+	if _hitbox and _hitbox.monitoring and objetivo is PhysicsBody3D:
+		toca_por_area = _hitbox.overlaps_body(objetivo)
+
+	if not toca_por_area and distancia_x > alcance_efectivo:
 		print("%s falló el golpe (fuera de alcance)" % _etiqueta_jugador(_pj))
 		return
 
@@ -296,24 +353,29 @@ func _aplicar_golpe() -> void:
 		return
 
 	var dy: float = objetivo.global_position.y - _pj.global_position.y
-	var altura_max: float = _obtener_altura_max_hitbox()
-	if dy < -0.55 or dy > altura_max:
+	if dy < -0.55 or dy > 1.45:
 		print("%s falló el golpe (%s lo esquivó en el aire)" % [_etiqueta_jugador(_pj), _etiqueta_jugador(objetivo)])
 		return
 
 	var dir_empuje: float = signf(dx) if absf(dx) > 0.05 else signf(mirando_x)
 
-	# Si el rival está cubriéndose de frente, bloquea todo el daño
-	var c_obj: Node = objetivo.get_node_or_null("Combate")
-	var mirando_obj: float = -objetivo.global_basis.z.x
-	var bloquea_de_frente: bool = (absf(dx) <= 0.35) or (signf(-dx) == signf(mirando_obj))
+	# Punto de impacto real donde la hoja de la espada / puno toca al rival
+	var altura_arma: float = clampf(
+		(_hitbox.global_position.y - objetivo.global_position.y) if _hitbox else 1.0,
+		0.75,
+		1.25
+	)
 	var pos_impacto := Vector3(
 		objetivo.global_position.x - dir_empuje * 0.22,
-		objetivo.global_position.y + 1.05,
+		objetivo.global_position.y + altura_arma,
 		0.12
 	)
 	var escena_raiz: Node = _pj.get_parent() if _pj else null
 
+	# Si el rival está cubriéndose de frente, bloquea todo el daño
+	var c_obj: Node = objetivo.get_node_or_null("Combate")
+	var mirando_obj: float = -objetivo.global_basis.z.x
+	var bloquea_de_frente: bool = (absf(dx) <= 0.35) or (signf(-dx) == signf(mirando_obj))
 	if c_obj and c_obj.has_method("esta_cubriendose") and c_obj.call("esta_cubriendose") and bloquea_de_frente:
 		objetivo.set("empuje", Vector3(dir_empuje * empuje_bloqueo, 0.0, 0.0))
 		EfectoSangre.crear_chispa_bloqueo(escena_raiz, pos_impacto, dir_empuje)
@@ -353,6 +415,8 @@ func _al_cambiar_vida(nueva_vida: int) -> void:
 		return
 
 	_atacando = false
+	if _hitbox_col:
+		_hitbox_col.disabled = true
 	if _cubriendose:
 		_dejar_de_cubrirse(false)
 
