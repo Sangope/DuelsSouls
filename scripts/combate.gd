@@ -2,7 +2,7 @@ class_name Combate
 extends Node
 
 ## Sistema de combate cuerpo a cuerpo 2.5D para cada luchador.
-## Maneja el ataque principal, defensa (cubrirse), aturdimiento por impacto,
+## Maneja el ataque principal, defensa, aturdimiento por impacto,
 ## muerte, narracion por consola y sincronizacion de controles segun el jugador.
 
 @export_group("Ataque Principal")
@@ -41,6 +41,8 @@ var _danio_actual: int = 0
 var _alcance_actual: float = 1.5
 var _duracion_actual: float = 0.5
 var _momento_actual: float = 0.2
+var _hitbox: Area3D = null
+var _hitbox_col: CollisionShape3D = null
 
 
 func _ready() -> void:
@@ -48,6 +50,9 @@ func _ready() -> void:
 	if _pj == null:
 		return
 	_sincronizar_controles()
+	_hitbox = _pj.get_node_or_null("HitboxAtaque")
+	if _hitbox:
+		_hitbox_col = _hitbox.get_node_or_null("CollisionShape3D")
 	_salud = _pj.get_node_or_null("Salud")
 	if _salud:
 		_vida_anterior = int(_salud.get("vida"))
@@ -230,6 +235,22 @@ func _terminar_ataque() -> void:
 		_limpiar_accion_pj()
 
 
+func _obtener_alcance_hitbox() -> float:
+	if _hitbox_col and _hitbox_col.shape is BoxShape3D:
+		var box := _hitbox_col.shape as BoxShape3D
+		var offset_z: float = absf(_hitbox.position.z + _hitbox_col.position.z) if _hitbox else absf(_hitbox_col.position.z)
+		return offset_z + box.size.z * 0.5
+	return _alcance_actual
+
+
+func _obtener_altura_max_hitbox() -> float:
+	if _hitbox_col and _hitbox_col.shape is BoxShape3D:
+		var box := _hitbox_col.shape as BoxShape3D
+		var offset_y: float = (_hitbox.position.y + _hitbox_col.position.y) if _hitbox else _hitbox_col.position.y
+		return offset_y + box.size.y * 0.5 - 0.175
+	return 1.45
+
+
 func _aplicar_golpe() -> void:
 	var objetivo: Node3D = _buscar_objetivo()
 	if objetivo == null:
@@ -242,7 +263,8 @@ func _aplicar_golpe() -> void:
 	var dx: float = objetivo.global_position.x - _pj.global_position.x
 	var mirando_x: float = -_pj.global_basis.z.x
 	var distancia_x: float = absf(dx)
-	if distancia_x > _alcance_actual:
+	var alcance_efectivo: float = _obtener_alcance_hitbox()
+	if distancia_x > alcance_efectivo:
 		print("%s falló el golpe (fuera de alcance)" % _etiqueta_jugador(_pj))
 		return
 
@@ -251,7 +273,8 @@ func _aplicar_golpe() -> void:
 		return
 
 	var dy: float = objetivo.global_position.y - _pj.global_position.y
-	if dy < -0.55 or dy > 1.45:
+	var altura_max: float = _obtener_altura_max_hitbox()
+	if dy < -0.55 or dy > altura_max:
 		print("%s falló el golpe (%s lo esquivó en el aire)" % [_etiqueta_jugador(_pj), _etiqueta_jugador(objetivo)])
 		return
 
