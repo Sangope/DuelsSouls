@@ -6,14 +6,15 @@ Estructura del proyecto
 - escenas/main.tscn          Escena principal del combate (instancia escenario, cámara, HUD, J1 y J2).
 - escenas/personaje.tscn     Escena independiente de J1 (Paladín).
 - escenas/rival.tscn         Escena independiente de J2 (Vampiro).
-- escenas/hud.tscn           HUD minimalista con temporizador en pantalla; la vida se muestra en consola.
+- escenas/hud.tscn           HUD superior con barras de vida, pociones y temporizador; también reporta vida en consola.
 - scripts/personaje.gd       Movimiento 2.5D, salto, orientación hacia el rival y máquina de estados.
 - scripts/combate.gd         Sistema de combate cuerpo a cuerpo (ataque principal, cubrirse, impacto, KO y narración en consola).
+- scripts/efecto_sangre.gd   Efecto visual de impacto y partículas/manchas de sangre pixel-art al recibir golpes.
 - scripts/salud.gd           Salud, curación e invulnerabilidad temporal tras impacto.
 - scripts/pocion.gd          Curación con pociones limitadas y recarga.
-- scripts/camara_sigue.gd    Cámara 2.5D tipo Mortal Kombat centrada entre ambos luchadores.
+- scripts/camara_sigue.gd    Cámara 2.5D cercana tipo Mortal Kombat con zoom dinámico y sacudida de impacto.
 - scripts/partida.gd         Temporizador y estado de partida.
-- scripts/hud.gd             Temporizador en pantalla y reporte de vidas en consola.
+- scripts/hud.gd             Actualización de barras de vida, pociones, temporizador y reporte en consola.
 - escenario/                 Escenario 3D de ruinas estilo Blasphemous/Mortal Kombat + shader pixel art.
 - personaje/                 Modelos .glb y texturas de Paladín (J1) y Vampiro (J2).
 - talleres_anteriores/       Escenas y prototipos de talleres anteriores archivados.

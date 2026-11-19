@@ -10,8 +10,8 @@ const RAPIDEZ_MAX = [0.0, 3.5, 3.5, 0.0, 0.0] # rapidez máxima en m/s, en el or
 @export var tiempo_arranque: float = 0.2
 @export var gravedad: float = 28.0
 @export var altura_salto: float = 1.8
-@export var limite_x_min: float = -13.5
-@export var limite_x_max: float = 13.5
+@export var limite_x_min: float = -3.35
+@export var limite_x_max: float = 3.35
 @export var separacion_minima: float = 1.0
 @export var altura_salto_libre: float = 0.55
 @export var rival: Node3D

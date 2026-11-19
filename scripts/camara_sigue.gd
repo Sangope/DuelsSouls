@@ -1,22 +1,34 @@
 extends Camera3D
 
-@export var objetivo: Node3D # Jugador 1 
-@export var objetivo2: Node3D # Jugador 2 
-@export var altura_camara: float = 1.35 # Altura Y estilo 2.5D 
-@export var distancia_base: float = 7.2 # Distancia Z a los luchadores
-@export var inclinacion_grados: float = -3.5 # Ligera inclinación hacia abajo para anclar el suelo al borde inferior
-@export var suavizado: float = 6.0
-@export var limite_min = Vector2(-5.5, -10)
-@export var limite_max = Vector2(5.5, 10)
+@export var objetivo: Node3D # Jugador 1
+@export var objetivo2: Node3D # Jugador 2
+@export var altura_camara: float = 1.18 # Altura Y cercana estilo Mortal Kombat 2.5D
+@export var distancia_base: float = 5.0 # Distancia Z cercana a los luchadores
+@export var inclinacion_grados: float = -2.8 # Inclinacion para anclar el suelo al borde inferior
+@export var suavizado: float = 6.5
+@export var limite_min = Vector2(-2.1, -10)
+@export var limite_max = Vector2(2.1, 10)
+
+var _tiempo_sacudida: float = 0.0
+var _duracion_sacudida: float = 0.0
+var _intensidad_sacudida: float = 0.0
+var _rng := RandomNumberGenerator.new()
 
 
 func _ready():
 	top_level = true
+	_rng.randomize()
 	_buscar_objetivos()
 	var foco = calcular_foco()
 	foco.x = clampf(foco.x, limite_min.x, limite_max.x)
 	global_position = Vector3(foco.x, altura_camara, distancia_base)
 	rotation_degrees = Vector3(inclinacion_grados, 0, 0)
+
+
+func sacudir(intensidad: float = 0.075, duracion: float = 0.13) -> void:
+	_intensidad_sacudida = maxf(_intensidad_sacudida, intensidad)
+	_duracion_sacudida = maxf(0.01, duracion)
+	_tiempo_sacudida = _duracion_sacudida
 
 
 func _buscar_objetivos():
@@ -62,12 +74,24 @@ func _physics_process(delta):
 	var foco = calcular_foco()
 	foco.x = clampf(foco.x, limite_min.x, limite_max.x)
 
-	# Distancia dinámica tipo Mortal Kombat: amplía suavemente cuando se alejan
-	var separacion = 4.0
+	# Encuadre cercano tipo Mortal Kombat: se acerca en combate corto y abre si se alejan a los pilares
+	var separacion = 3.4
 	if objetivo != null and objetivo2 != null and is_instance_valid(objetivo) and is_instance_valid(objetivo2):
 		separacion = absf(objetivo.global_position.x - objetivo2.global_position.x)
-	var z_dinamico = clampf(distancia_base + (separacion - 4.0) * 0.22, 6.4, 8.4)
+	var z_dinamico = clampf(distancia_base + (separacion - 3.4) * 0.28, 4.55, 6.2)
+
+	var offset_sacudida := Vector3.ZERO
+	if _tiempo_sacudida > 0.0:
+		_tiempo_sacudida = maxf(0.0, _tiempo_sacudida - delta)
+		var factor := _tiempo_sacudida / _duracion_sacudida
+		offset_sacudida = Vector3(
+			_rng.randf_range(-1.0, 1.0) * _intensidad_sacudida * factor,
+			_rng.randf_range(-0.7, 0.7) * _intensidad_sacudida * factor,
+			0.0
+		)
+		if _tiempo_sacudida <= 0.0:
+			_intensidad_sacudida = 0.0
 
 	var destino = Vector3(foco.x, altura_camara, z_dinamico)
-	global_position = global_position.lerp(destino, suavizado * delta)
+	global_position = global_position.lerp(destino, suavizado * delta) + offset_sacudida
 	rotation_degrees = Vector3(inclinacion_grados, 0, 0)

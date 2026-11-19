@@ -261,8 +261,16 @@ func _aplicar_golpe() -> void:
 	var c_obj: Node = objetivo.get_node_or_null("Combate")
 	var mirando_obj: float = -objetivo.global_basis.z.x
 	var bloquea_de_frente: bool = (absf(dx) <= 0.35) or (signf(-dx) == signf(mirando_obj))
+	var pos_impacto := Vector3(
+		objetivo.global_position.x - dir_empuje * 0.22,
+		objetivo.global_position.y + 1.05,
+		0.12
+	)
+	var escena_raiz: Node = _pj.get_parent() if _pj else null
+
 	if c_obj and c_obj.has_method("esta_cubriendose") and c_obj.call("esta_cubriendose") and bloquea_de_frente:
 		objetivo.set("empuje", Vector3(dir_empuje * empuje_bloqueo, 0.0, 0.0))
+		EfectoSangre.crear_chispa_bloqueo(escena_raiz, pos_impacto, dir_empuje)
 		print("%s dio golpe -> %s se cubrió (0 de daño)" % [_etiqueta_jugador(_pj), _etiqueta_jugador(objetivo)])
 		return
 
@@ -273,6 +281,7 @@ func _aplicar_golpe() -> void:
 	if puede_recibir and s_obj:
 		var dano_aplicado: int = mini(_danio_actual, vida_antes)
 		print("%s dio golpe -> %s -%d de vida" % [_etiqueta_jugador(_pj), _etiqueta_jugador(objetivo), dano_aplicado])
+		EfectoSangre.crear_impacto_sangre(escena_raiz, pos_impacto, dir_empuje, 0.0)
 	elif s_obj:
 		print("%s atacó a %s, pero aún está invulnerable" % [_etiqueta_jugador(_pj), _etiqueta_jugador(objetivo)])
 
