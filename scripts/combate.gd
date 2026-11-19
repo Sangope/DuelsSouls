@@ -1,9 +1,11 @@
 class_name Combate
 extends Node
 
-## Sistema de combate cuerpo a cuerpo 2.5D para cada luchador.
-## La HitboxAtaque (Area3D) permanece fija frente al personaje y solo se activa
-## y se muestra en el momento exacto del impacto (no en el frame 0).
+## Sistema de combate cuerpo a cuerpo 2.5D con barra de escudo y Ruptura de Guardia (Guard Break).
+## Evita que los jugadores permanezcan cubiertos indefinidamente drenando el escudo
+## al mantener la guardia y al bloquear golpes; si llega a 0 ocurre Guard Break y aturdimiento.
+
+signal cambio_escudo(escudo_actual: float, guardia_rota: bool)
 
 @export_group("Ataque Principal")
 @export var accion_ataque_1: String = "p1_ataque_1"
@@ -14,24 +16,34 @@ extends Node
 @export var momento_golpe_1: float = 0.31
 @export var velocidad_anim_1: float = 1.85
 
-@export_group("Defensa")
+@export_group("Defensa y Escudo")
 @export var accion_cubrirse: String = "p1_cubrirse"
 @export var anim_cubrirse: String = "block"
 @export var velocidad_anim_cubrirse: float = 1.6
 @export var empuje_bloqueo: float = 0.45
+@export var escudo_max: float = 100.0
+@export var desgaste_escudo_por_segundo: float = 24.0
+@export var costo_bloqueo_golpe: float = 40.0
+@export var recarga_escudo_por_segundo: float = 28.0
+@export var duracion_guardia_rota: float = 1.25
+@export var dano_guardia_rota: int = 10
 
 @export_group("Tiempos")
 @export var enfriamiento: float = 0.15
 @export var duracion_aturdimiento: float = 0.28
 
-var _pj: Node = null
+var escudo: float = 100.0
+
+var _pj: Node3D = null
 var _salud: Node = null
 var _atacando: bool = false
 var _cubriendose: bool = false
+var _guardia_rota: bool = false
 var _aturdido: bool = false
 var _muerto: bool = false
 var _tiempo: float = 0.0
 var _tiempo_aturdido: float = 0.0
+var _tiempo_guardia_rota: float = 0.0
 var _enfriamiento_restante: float = 0.0
 var _golpe_aplicado: bool = false
 var _vida_anterior: int = 100
@@ -47,9 +59,10 @@ var _hitbox_col: CollisionShape3D = null
 
 
 func _ready() -> void:
-	_pj = get_parent()
+	_pj = get_parent() as Node3D
 	if _pj == null:
 		return
+	escudo = escudo_max
 	_sincronizar_controles()
 	_hitbox = _pj.get_node_or_null("HitboxAtaque")
 	if _hitbox:
@@ -95,7 +108,15 @@ func esta_atacando() -> bool:
 
 
 func esta_cubriendose() -> bool:
-	return _cubriendose
+	return _cubriendose and not _guardia_rota
+
+
+func tiene_guardia_rota() -> bool:
+	return _guardia_rota
+
+
+func obtener_escudo() -> float:
+	return escudo
 
 
 func _etiqueta_jugador(nodo: Node) -> String:
@@ -117,10 +138,29 @@ func _physics_process(delta: float) -> void:
 			_dejar_de_cubrirse(false)
 		return
 
+	if _guardia_rota:
+		_activar_hitbox(false)
+		if _cubriendose:
+			_dejar_de_cubrirse(false)
+		_tiempo_guardia_rota -= delta
+		escudo = minf(escudo_max, escudo + (recarga_escudo_por_segundo * 0.85) * delta)
+		cambio_escudo.emit(escudo, _guardia_rota)
+		if _tiempo_guardia_rota <= 0.0:
+			_guardia_rota = false
+			escudo = maxf(escudo, 35.0)
+			if _pj:
+				_pj.set("multiplicador", 1.0)
+				if _pj.get("accion") == "impact":
+					_limpiar_accion_pj()
+			cambio_escudo.emit(escudo, _guardia_rota)
+			print("%s recuperó su escudo (%.0f%%)" % [_etiqueta_jugador(_pj), escudo])
+		return
+
 	if _aturdido:
 		_activar_hitbox(false)
 		if _cubriendose:
 			_dejar_de_cubrirse(false)
+		_recargar_escudo(delta)
 		_tiempo_aturdido -= delta
 		if _tiempo_aturdido <= 0.0:
 			_aturdido = false
@@ -129,12 +169,15 @@ func _physics_process(delta: float) -> void:
 		return
 
 	if _atacando:
+		_recargar_escudo(delta * 0.5)
 		_actualizar_ataque(delta)
 		return
 
-	_actualizar_bloqueo()
-	if _cubriendose:
+	_actualizar_bloqueo(delta)
+	if _cubriendose or _guardia_rota:
 		return
+
+	_recargar_escudo(delta)
 
 	if not _puede_atacar():
 		return
@@ -150,7 +193,13 @@ func _physics_process(delta: float) -> void:
 		)
 
 
-func _actualizar_bloqueo() -> void:
+func _recargar_escudo(delta: float) -> void:
+	if escudo < escudo_max:
+		escudo = minf(escudo_max, escudo + recarga_escudo_por_segundo * delta)
+		cambio_escudo.emit(escudo, _guardia_rota)
+
+
+func _actualizar_bloqueo(delta: float) -> void:
 	var quiere_cubrirse: bool = (
 		_puede_cubrirse()
 		and InputMap.has_action(accion_cubrirse)
@@ -159,12 +208,20 @@ func _actualizar_bloqueo() -> void:
 	if quiere_cubrirse:
 		if not _cubriendose:
 			_empezar_a_cubrirse()
+		# Desgaste continuo por mantener el escudo activo
+		escudo = maxf(0.0, escudo - desgaste_escudo_por_segundo * delta)
+		cambio_escudo.emit(escudo, _guardia_rota)
+		if escudo <= 0.001:
+			var escena_raiz: Node = _pj.get_parent() if _pj else null
+			var pos_escudo: Vector3 = _pj.global_position + Vector3(0.0, 1.0, 0.12) if _pj else Vector3.ZERO
+			EfectoSangre.crear_ruptura_escudo(escena_raiz, pos_escudo, 0.0)
+			_romper_guardia("por mantener el escudo demasiado tiempo")
 	elif _cubriendose:
 		_dejar_de_cubrirse(true)
 
 
 func _puede_cubrirse() -> bool:
-	if _pj == null:
+	if _pj == null or _guardia_rota or escudo <= 0.001:
 		return false
 	if _salud and int(_salud.get("vida")) <= 0:
 		return false
@@ -180,7 +237,7 @@ func _empezar_a_cubrirse() -> void:
 	_cubriendose = true
 	_pj.set("multiplicador", 0.0)
 	_asignar_accion_pj(anim_cubrirse, velocidad_anim_cubrirse)
-	print("%s se está cubriendo" % _etiqueta_jugador(_pj))
+	print("%s se está cubriendo (Escudo: %.0f%%)" % [_etiqueta_jugador(_pj), escudo])
 
 
 func _dejar_de_cubrirse(reportar: bool) -> void:
@@ -188,14 +245,46 @@ func _dejar_de_cubrirse(reportar: bool) -> void:
 	if _pj:
 		if _pj.get("accion") == anim_cubrirse:
 			_limpiar_accion_pj()
-		if _pj.get("accion") != "pick-up":
+		if _pj.get("accion") != "pick-up" and not _guardia_rota:
 			_pj.set("multiplicador", 1.0)
 		if reportar:
-			print("%s dejó de cubrirse" % _etiqueta_jugador(_pj))
+			print("%s dejó de cubrirse (Escudo: %.0f%%)" % [_etiqueta_jugador(_pj), escudo])
+
+
+func _romper_guardia(motivo: String) -> void:
+	_cubriendose = false
+	_atacando = false
+	_guardia_rota = true
+	_tiempo_guardia_rota = duracion_guardia_rota
+	escudo = 0.0
+	_activar_hitbox(false)
+	if _pj:
+		_pj.set("multiplicador", 0.0)
+		_asignar_accion_pj("impact", 0.9)
+	cambio_escudo.emit(escudo, _guardia_rota)
+	print("¡GUARDIA ROTA! %s quedó indefenso (%s)" % [_etiqueta_jugador(_pj), motivo])
+
+
+func consumir_escudo_por_golpe(atacante: Node, dir_empuje: float, pos_impacto: Vector3) -> bool:
+	## Devuelve true si el escudo resistio el golpe, o false si el golpe rompio la guardia.
+	escudo = maxf(0.0, escudo - costo_bloqueo_golpe)
+	cambio_escudo.emit(escudo, _guardia_rota)
+	var escena_raiz: Node = _pj.get_parent() if _pj else null
+	if escudo > 0.001:
+		if _pj:
+			_pj.set("empuje", Vector3(dir_empuje * empuje_bloqueo, 0.0, 0.0))
+		EfectoSangre.crear_chispa_bloqueo(escena_raiz, pos_impacto, dir_empuje)
+		print("%s dio golpe -> %s bloqueó con escudo (0 de daño · Escudo: %.0f%%)" % [_etiqueta_jugador(atacante), _etiqueta_jugador(_pj), escudo])
+		return true
+
+	# El golpe rompio el escudo -> Guard Break
+	EfectoSangre.crear_ruptura_escudo(escena_raiz, pos_impacto, dir_empuje)
+	_romper_guardia("escudo roto por %s" % _etiqueta_jugador(atacante))
+	return false
 
 
 func _puede_atacar() -> bool:
-	if _pj == null or _enfriamiento_restante > 0.0 or _cubriendose:
+	if _pj == null or _enfriamiento_restante > 0.0 or _cubriendose or _guardia_rota:
 		return false
 	if _salud and int(_salud.get("vida")) <= 0:
 		return false
@@ -313,29 +402,33 @@ func _aplicar_golpe() -> void:
 	)
 	var escena_raiz: Node = _pj.get_parent() if _pj else null
 
-	# Si el rival está cubriéndose de frente, bloquea todo el daño
+	# Si el rival está cubriéndose de frente, desgasta su escudo; si llega a 0, rompe la guardia
 	var c_obj: Node = objetivo.get_node_or_null("Combate")
 	var mirando_obj: float = -objetivo.global_basis.z.x
 	var bloquea_de_frente: bool = (absf(dx) <= 0.35) or (signf(-dx) == signf(mirando_obj))
+	var danio_a_aplicar: int = _danio_actual
 	if c_obj and c_obj.has_method("esta_cubriendose") and c_obj.call("esta_cubriendose") and bloquea_de_frente:
-		objetivo.set("empuje", Vector3(dir_empuje * empuje_bloqueo, 0.0, 0.0))
-		EfectoSangre.crear_chispa_bloqueo(escena_raiz, pos_impacto, dir_empuje)
-		print("%s dio golpe -> %s se cubrió (0 de daño)" % [_etiqueta_jugador(_pj), _etiqueta_jugador(objetivo)])
-		return
+		var resistio: bool = true
+		if c_obj.has_method("consumir_escudo_por_golpe"):
+			resistio = bool(c_obj.call("consumir_escudo_por_golpe", _pj, dir_empuje, pos_impacto))
+		if resistio:
+			return
+		# Si el golpe rompio el escudo, entra el dano de ruptura de guardia
+		danio_a_aplicar = dano_guardia_rota
 
 	var vida_antes: int = int(s_obj.get("vida")) if s_obj else 0
 	var puede_recibir: bool = true
 	if s_obj and s_obj.has_method("puede_recibir_golpe"):
 		puede_recibir = bool(s_obj.call("puede_recibir_golpe"))
 	if puede_recibir and s_obj:
-		var dano_aplicado: int = mini(_danio_actual, vida_antes)
+		var dano_aplicado: int = mini(danio_a_aplicar, vida_antes)
 		print("%s dio golpe -> %s -%d de vida" % [_etiqueta_jugador(_pj), _etiqueta_jugador(objetivo), dano_aplicado])
 		EfectoSangre.crear_impacto_sangre(escena_raiz, pos_impacto, dir_empuje, 0.0)
 	elif s_obj:
 		print("%s atacó a %s, pero aún está invulnerable" % [_etiqueta_jugador(_pj), _etiqueta_jugador(objetivo)])
 
 	if objetivo.has_method("recibir_golpe"):
-		objetivo.call("recibir_golpe", _danio_actual)
+		objetivo.call("recibir_golpe", danio_a_aplicar)
 	objetivo.set("empuje", Vector3(dir_empuje * 0.45, 0.0, 0.0))
 
 
@@ -347,6 +440,8 @@ func _al_cambiar_vida(nueva_vida: int) -> void:
 		_muerto = false
 		_aturdido = false
 		_cubriendose = false
+		_guardia_rota = false
+		escudo = escudo_max
 		_activar_hitbox(false)
 		if _pj:
 			_pj.set("multiplicador", 1.0)
@@ -364,9 +459,10 @@ func _al_cambiar_vida(nueva_vida: int) -> void:
 	if nueva_vida <= 0:
 		_muerto = true
 		_aturdido = false
+		_guardia_rota = false
 		_pj.set("multiplicador", 0.0)
 		_asignar_accion_pj("die", 1.0)
-	else:
+	elif not _guardia_rota:
 		_aturdido = true
 		_tiempo_aturdido = duracion_aturdimiento
 		_asignar_accion_pj("impact", 1.35)

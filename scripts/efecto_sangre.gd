@@ -156,6 +156,62 @@ static func crear_chispa_bloqueo(
 	return nodo
 
 
+static func crear_ruptura_escudo(
+	escena_padre: Node,
+	posicion_impacto: Vector3,
+	dir_empuje: float
+) -> Node3D:
+	if escena_padre == null:
+		return null
+
+	var nodo := EfectoSangre.new()
+	nodo.name = "EfectoRupturaEscudo"
+	nodo._duracion_total = 0.65
+	escena_padre.add_child(nodo)
+	nodo.global_position = posicion_impacto
+
+	var particulas := CPUParticles3D.new()
+	particulas.name = "FragmentosEscudo"
+	particulas.amount = 34
+	particulas.lifetime = 0.42
+	particulas.one_shot = true
+	particulas.explosiveness = 0.96
+
+	var mat_frag := StandardMaterial3D.new()
+	mat_frag.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mat_frag.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat_frag.vertex_color_use_as_albedo = true
+	mat_frag.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
+	mat_frag.albedo_color = Color(0.35, 0.88, 1.0, 0.98)
+
+	var quad := QuadMesh.new()
+	quad.material = mat_frag
+	quad.size = Vector2(0.11, 0.11)
+	particulas.mesh = quad
+	particulas.emission_shape = CPUParticles3D.EMISSION_SHAPE_SPHERE
+	particulas.emission_sphere_radius = 0.18
+	particulas.direction = Vector3(dir_empuje, 0.55, 0.25).normalized()
+	particulas.spread = 75.0
+	particulas.gravity = Vector3(0.0, -11.5, 0.0)
+	particulas.initial_velocity_min = 2.8
+	particulas.initial_velocity_max = 5.6
+	nodo.add_child(particulas)
+	particulas.emitting = true
+
+	var luz := OmniLight3D.new()
+	luz.light_color = Color(0.35, 0.85, 1.0, 1.0)
+	luz.light_energy = 2.6
+	luz.omni_range = 2.8
+	nodo.add_child(luz)
+	nodo._luz = luz
+
+	var cam := escena_padre.get_node_or_null("Camera3D")
+	if cam and cam.has_method("sacudir"):
+		cam.call("sacudir", 0.12, 0.22)
+
+	return nodo
+
+
 func _process(delta: float) -> void:
 	_tiempo += delta
 	if _destello:

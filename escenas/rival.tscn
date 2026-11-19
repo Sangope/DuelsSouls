@@ -11,7 +11,7 @@ radius = 0.15478516
 height = 1.75
 
 [sub_resource type="BoxShape3D" id="HitboxPunoShape"]
-size = Vector3(0.6, 1.25, 1.2)
+size = Vector3(0.6, 0.25280762, 1.2)
 
 [node name="Rival" type="CharacterBody3D" unique_id=1321645826 groups=["luchador", "rival"]]
 collision_layer = 2
@@ -25,7 +25,7 @@ accion_saltar = "p2_saltar"
 accion_pocion = "p2_pocion"
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=161676600]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.91150117, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.91150117, -0.050884247)
 shape = SubResource("CapsulaVampiro")
 
 [node name="Modelo" parent="." unique_id=942177596 instance=ExtResource("2_modelo_vampiro")]
@@ -56,6 +56,6 @@ collision_mask = 2
 monitorable = false
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="HitboxAtaque" unique_id=991122335]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.0, -0.85)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.4985962, -0.85)
 shape = SubResource("HitboxPunoShape")
 debug_color = Color(0.95, 0.18, 0.22, 0.45)

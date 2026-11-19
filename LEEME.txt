@@ -25,12 +25,12 @@ Jugador 1 — Paladín (WASD + J/K/L):
 - A / D           : Mover izquierda / derecha
 - W o Espacio     : Saltar
 - J               : Ataque principal con espada (20 de daño)
-- K (mantener)    : Cubrirse con escudo (bloquea ataques frontales)
+- K (mantener)    : Cubrirse con escudo (drena barra de escudo; si llega a 0 ocurre Guardia Rota)
 - L               : Poción de curación (+30 HP)
 
 Jugador 2 — Vampiro (Flechas + 1/2/3):
 - Flecha Izq/Der  : Mover izquierda / derecha
 - Flecha Arriba   : Saltar
 - 1 (o Numpad 1)  : Golpe de puño (15 de daño)
-- 2 (o Numpad 2)  : Cubrirse (mantener para bloquear ataques frontales)
+- 2 (o Numpad 2)  : Cubrirse con escudo (drena barra de escudo; si llega a 0 ocurre Guardia Rota)
 - 3 (o Numpad 3)  : Poción de curación (+30 HP)
