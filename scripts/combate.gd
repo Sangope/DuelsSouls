@@ -53,6 +53,9 @@ func _ready() -> void:
 	_hitbox = _pj.get_node_or_null("HitboxAtaque")
 	if _hitbox:
 		_hitbox_col = _hitbox.get_node_or_null("CollisionShape3D")
+		if _hitbox_col:
+			# En reposo y en el frame 0 la hitbox empieza APAGADA
+			_hitbox_col.disabled = true
 	_salud = _pj.get_node_or_null("Salud")
 	if _salud:
 		_vida_anterior = int(_salud.get("vida"))
@@ -201,6 +204,8 @@ func _iniciar_ataque(
 	momento: float,
 	velocidad: float
 ) -> void:
+	# FASE 1 (Frame 0 - Preparacion / Aviso):
+	# Inicia la animacion pero la Hitbox sigue APAGADA (no hace dano en el frame 0).
 	_atacando = true
 	_tiempo = 0.0
 	_golpe_aplicado = false
@@ -209,6 +214,8 @@ func _iniciar_ataque(
 	_alcance_actual = alcance
 	_duracion_actual = duracion
 	_momento_actual = momento
+	if _hitbox_col:
+		_hitbox_col.disabled = true
 	_asignar_accion_pj(nombre_anim, velocidad)
 	var tipo_golpe: String = "golpe de puño" if nombre_anim == "punch" else "golpe con espada"
 	print("%s lanzó %s" % [_etiqueta_jugador(_pj), tipo_golpe])
@@ -217,12 +224,26 @@ func _iniciar_ataque(
 func _actualizar_ataque(delta: float) -> void:
 	if _pj == null or _pj.get("accion") != _anim_actual:
 		_atacando = false
+		if _hitbox_col:
+			_hitbox_col.disabled = true
 		return
 
 	_tiempo += delta
+
+	# FASE 2 (Cuadros Activos / Impacto):
+	# Solo cuando el reloj alcanza 'momento_golpe_1' (cuando el brazo/espada ya se estiro),
+	# se ENCIENDE la Hitbox y se comprueba donde esta el rival AHORA.
 	if not _golpe_aplicado and _tiempo >= _momento_actual:
 		_golpe_aplicado = true
+		if _hitbox_col:
+			_hitbox_col.disabled = false
 		_aplicar_golpe()
+
+	# FASE 3 (Recuperacion):
+	# Pasada la ventana activa del impacto (+0.12 s), se vuelve a APAGAR la Hitbox
+	# mientras el personaje recoge el brazo.
+	if _golpe_aplicado and _hitbox_col and not _hitbox_col.disabled and _tiempo >= _momento_actual + 0.12:
+		_hitbox_col.disabled = true
 
 	if _tiempo >= _duracion_actual:
 		_terminar_ataque()
@@ -231,6 +252,8 @@ func _actualizar_ataque(delta: float) -> void:
 func _terminar_ataque() -> void:
 	_atacando = false
 	_enfriamiento_restante = enfriamiento
+	if _hitbox_col:
+		_hitbox_col.disabled = true
 	if _pj and _pj.get("accion") == _anim_actual:
 		_limpiar_accion_pj()
 
