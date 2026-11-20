@@ -1,0 +1,84 @@
+[gd_scene format=3 uid="uid://b7m2k9p4n1men"]
+
+[ext_resource type="Script" path="res://scripts/menu_inicio.gd" id="1_menu"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBotonNormal"]
+bg_color = Color(0.14, 0.09, 0.13, 0.94)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.86, 0.66, 0.28, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+shadow_color = Color(0, 0, 0, 0.65)
+shadow_size = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBotonHover"]
+bg_color = Color(0.24, 0.13, 0.18, 0.98)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.84, 0.42, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+shadow_color = Color(0, 0, 0, 0.75)
+shadow_size = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBotonPressed"]
+bg_color = Color(0.52, 0.12, 0.16, 0.98)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.98, 0.9, 0.65, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[node name="MenuInicio" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_menu")
+
+[node name="FondoOscuro" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.05, 0.03, 0.07, 0.58)
+
+[node name="Centro" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="BotonPlay" type="Button" parent="Centro"]
+custom_minimum_size = Vector2(148, 44)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.98, 0.9, 0.72, 1)
+theme_override_colors/font_hover_color = Color(1, 0.96, 0.85, 1)
+theme_override_colors/font_pressed_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("StyleBotonNormal")
+theme_override_styles/hover = SubResource("StyleBotonHover")
+theme_override_styles/pressed = SubResource("StyleBotonPressed")
+theme_override_styles/focus = SubResource("StyleBotonHover")
+text = "PLAY"

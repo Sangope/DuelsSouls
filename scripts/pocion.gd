@@ -42,6 +42,9 @@ func _physics_process(delta):
 
 
 func puede():
+	var partida = get_tree().get_first_node_in_group("partida")
+	if partida != null and bool(partida.get("en_menu")):
+		return false
 	if pociones <= 0 or pj == null:
 		return false
 	if pj.has_method("is_on_floor") and not pj.is_on_floor():

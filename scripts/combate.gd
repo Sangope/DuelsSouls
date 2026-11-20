@@ -67,7 +67,6 @@ func _ready() -> void:
 	_hitbox = _pj.get_node_or_null("HitboxAtaque")
 	if _hitbox:
 		_hitbox_col = _hitbox.get_node_or_null("CollisionShape3D")
-	# En reposo y en el frame 0 la hitbox fija permanece APAGADA y oculta
 	_activar_hitbox(false)
 	_salud = _pj.get_node_or_null("Salud")
 	if _salud:
@@ -119,6 +118,31 @@ func obtener_escudo() -> float:
 	return escudo
 
 
+func reiniciar_para_round() -> void:
+	_atacando = false
+	_cubriendose = false
+	_guardia_rota = false
+	_aturdido = false
+	_muerto = false
+	_tiempo = 0.0
+	_tiempo_aturdido = 0.0
+	_tiempo_guardia_rota = 0.0
+	_enfriamiento_restante = 0.0
+	_golpe_aplicado = false
+	_vida_anterior = 100
+	escudo = escudo_max
+	_activar_hitbox(false)
+	if _pj:
+		_pj.set("multiplicador", 1.0)
+	_limpiar_accion_pj()
+	cambio_escudo.emit(escudo, _guardia_rota)
+
+
+func _esta_en_menu() -> bool:
+	var partida := get_tree().get_first_node_in_group("partida")
+	return bool(partida.get("en_menu")) if partida else false
+
+
 func _etiqueta_jugador(nodo: Node) -> String:
 	if nodo == null:
 		return "Luchador"
@@ -129,6 +153,9 @@ func _etiqueta_jugador(nodo: Node) -> String:
 
 
 func _physics_process(delta: float) -> void:
+	if _esta_en_menu():
+		return
+
 	if _enfriamiento_restante > 0.0:
 		_enfriamiento_restante = maxf(0.0, _enfriamiento_restante - delta)
 

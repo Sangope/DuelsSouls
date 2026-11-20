@@ -99,21 +99,27 @@ func _nombre_jugador() -> String:
 	return "Jugador %d" % jugador_id
 
 
+func _esta_en_menu() -> bool:
+	var partida := get_tree().get_first_node_in_group("partida")
+	return bool(partida.get("en_menu")) if partida else false
+
+
 func _physics_process(delta):
 	if rival == null or not is_instance_valid(rival):
 		_buscar_rival()
 
+	var en_menu: bool = _esta_en_menu()
 	var curando = (accion == "pick-up")
 	var cubriendo = (accion == "block")
 	var muerto = (accion == "die")
 
 	if not is_on_floor():
 		velocity.y -= gravedad * delta
-	elif not (curando or cubriendo or muerto) and Input.is_action_just_pressed(accion_saltar):
+	elif not (curando or cubriendo or muerto or en_menu) and Input.is_action_just_pressed(accion_saltar):
 		velocity.y = sqrt(2 * gravedad * altura_salto)
 		print("%s saltó" % _nombre_jugador())
 
-	var lado = Input.get_axis(accion_izquierda, accion_derecha)
+	var lado = 0.0 if en_menu else Input.get_axis(accion_izquierda, accion_derecha)
 
 	# Orientación: mirar SIEMPRE al contrincante (no depende de la tecla)
 	var hacia_rival_x = 1.0
